@@ -87,12 +87,16 @@ class Decoder(object):
         # each 2-d TF variable
         with vs.variable_scope("start"):
             # start index of answer
-            a_s = tf.contrib.layers._linear([h_q, h_p], output_size=self.output_size)
+            a_s = tf.contrib.layers.fully_connected([h_q, h_p],
+                output_size=self.output_size,
+                activation_fn=None)
         with vs.variable_scope("end"):
             # end index of answer
-            a_e = tf.contrib.layers._linear([h_q, h_p], output_size=self.output_size)
+            a_e = tf.contrib.layers.fully_connected([h_q, h_p],
+                output_size=self.output_size,
+                activation_fn=None)
 
-        # IMPORTANT FUNCTION:
+        # linear function:
         # h_q W + b + h_p W + b
         return (a_s, a_e)
 
