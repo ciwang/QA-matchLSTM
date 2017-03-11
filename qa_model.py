@@ -11,6 +11,7 @@ import tensorflow as tf
 from tensorflow.python.ops import variable_scope as vs
 
 from evaluate import exact_match_score, f1_score
+from qa_data import PAD_ID
 
 logging.basicConfig(level=logging.INFO)
 
@@ -23,7 +24,6 @@ def get_optimizer(opt):
     else:
         assert (False)
     return optfn
-
 
 class Encoder(object):
     def __init__(self, size, vocab_dim):
@@ -88,12 +88,12 @@ class Decoder(object):
         with vs.variable_scope("start"):
             # start index of answer
             a_s = tf.contrib.layers.fully_connected([h_q, h_p],
-                output_size=self.output_size,
+                num_outputs=self.output_size,
                 activation_fn=None)
         with vs.variable_scope("end"):
             # end index of answer
             a_e = tf.contrib.layers.fully_connected([h_q, h_p],
-                output_size=self.output_size,
+                num_outputs=self.output_size,
                 activation_fn=None)
 
         # linear function:
@@ -109,14 +109,17 @@ class QASystem(object):
         :param decoder: a decoder that you constructed in train.py
         :param args: pass in more arguments as needed
         """
+        # ==== constants ====
+        self.lr = 0.001
 
         # ==== set up placeholder tokens ========
         self.FLAGS = FLAGS
         self.paragraphs_placeholder = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size])
-        self.questions_placeholder = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size]) # is this the right size?
-        self.masks_placeholder = tf.placeholder(tf.int32, shape=[None])
-        self.start_answer = tf.placeholder(tf.float32, shape=[None, self.FLAGS.output_size])
-        self.end_answer = tf.placeholder(tf.float32, shape=[None, self.FLAGS.output_size])
+        self.questions_placeholder = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size])
+        self.q_masks_placeholder = tf.placeholder(tf.int32, shape=[None])
+        self.p_masks_placeholder = tf.placeholder(tf.int32, shape=[None])
+        self.start_answer = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size])
+        self.end_answer = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size])
 
         # ==== assemble pieces ====
         with tf.variable_scope("qa", initializer=tf.uniform_unit_scaling_initializer(1.0)):
@@ -136,9 +139,8 @@ class QASystem(object):
         :return:
         """
         encoder = Encoder(self.FLAGS.state_size, self.FLAGS.embedding_size)
-        #TODO: padding
-        h_q = encoder.encode(self.questions_var, self.masks_placeholder, None)
-        h_p = encoder.encode(self.paragraphs_var, self.masks_placeholder, h_q, reuse=True)
+        h_q = encoder.encode(self.questions_var, self.q_masks_placeholder, None)
+        h_p = encoder.encode(self.paragraphs_var, self.p_masks_placeholder, h_q, reuse=True)
         decoder = Decoder(self.FLAGS.output_size)
         self.a_s, self.a_e = decoder.decode((h_p, h_q))
 
@@ -149,8 +151,12 @@ class QASystem(object):
         :return:
         """
         with vs.variable_scope("loss"):
-            tf.nn.sparse_softmax_cross_entropy_with_logits(self.a_s, self.start_answer)
-            tf.nn.sparse_softmax_cross_entropy_with_logits(self.a_e, self.end_answer)
+            loss_s = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.a_s, labels=self.start_answer)
+            loss_e = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.a_e, labels=self.end_answer)
+            self.loss = loss_s + loss_e
+
+    def setup_training_op(self, loss):
+        self.train_op = get_optimizer("sgd")(self.config.lr).minimize(loss)
 
     def setup_embeddings(self):
         """
@@ -164,7 +170,7 @@ class QASystem(object):
             self.questions_var = tf.nn.embedding_lookup(embeddings, self.questions_placeholder)
             self.paragraphs_var = tf.nn.embedding_lookup(embeddings, self.paragraphs_placeholder)
 
-    def optimize(self, session, train_x, train_y):
+    def optimize(self, session, train_q, train_p, train_a, q_masks, p_masks):
         """
         Takes in actual data to optimize your model
         This method is equivalent to a step() function
@@ -174,14 +180,28 @@ class QASystem(object):
 
         # fill in this feed_dictionary like:
         # input_feed['train_x'] = train_x
+        input_feed[self.questions_placeholder] = train_q
+        input_feed[self.paragraphs_placeholder] = train_p
+        input_feed[self.q_masks_placeholder] = q_masks
+        input_feed[self.p_masks_placeholder] = p_masks
+        # create 1-hot vectors here?
+        a_starts = np.array([a[0] for a in train_a])
+        a_ends = np.array([a[1] for a in train_a])
+        one_hot_start = np.zeros((a_starts.size, self.FLAGS.output_size))
+        one_hot_end = np.zeros((a_ends.size, self.FLAGS.output_size))
+        one_hot_start[np.arange(a_starts.size), a_starts] = 1
+        one_hot_end[np.arange(a_ends.size), a_ends] = 1
+        input_feed[self.start_answer] = one_hot_start
+        input_feed[self.end_answer] = one_hot_end
 
-        output_feed = [self.updates, self.loss]
+        self.train_op = get_optimizer("sgd")(self.lr).minimize(self.loss)
+        output_feed = [self.train_op, self.loss]
 
         outputs = session.run(output_feed, input_feed)
 
         return outputs
 
-    def test(self, session, valid_x, valid_y):
+    def test(self, session, valid_q, valid_p, valid_a):
         """
         in here you should compute a cost for your validation set
         and tune your hyperparameters according to the validation set performance
@@ -198,7 +218,7 @@ class QASystem(object):
 
         return outputs
 
-    def decode(self, session, test_x):
+    def decode(self, session, test_p, test_q):
         """
         Returns the probability distribution over different positions in the paragraph
         so that other methods like self.answer() will be able to work properly
@@ -208,8 +228,8 @@ class QASystem(object):
 
         # fill in this feed_dictionary like:
         # input_feed['test_x'] = test_x
-        input_feed[self.paragraph] = test_paragraph
-        input_feed[self.question] = text_question
+        input_feed[self.paragraph] = test_p
+        input_feed[self.question] = test_q
 
         output_feed = [self.a_s, self.a_e]
 
@@ -217,9 +237,9 @@ class QASystem(object):
 
         return outputs
 
-    def answer(self, session, test_x):
+    def answer(self, session, test_p, test_q):
 
-        yp, yp2 = self.decode(session, test_x)
+        yp, yp2 = self.decode(session, test_p, test_q)
 
         a_s = np.argmax(yp, axis=1)
         a_e = np.argmax(yp2, axis=1)
@@ -246,7 +266,7 @@ class QASystem(object):
 
         return valid_cost
 
-    def evaluate_answer(self, session, dataset, sample=100, log=False):
+    def evaluate_answer(self, session, p, true_s, true_e, sample=100, log=False):
         """
         Evaluate the model's performance using the harmonic mean of F1 and Exact Match (EM)
         with the set of true answer labels
@@ -269,10 +289,14 @@ class QASystem(object):
         if log:
             logging.info("F1: {}, EM: {}, for {} samples".format(f1, em, sample))
 
-        for p, q in zip(paragraph, question):
-            a_s, a_e = self.answer(session, p, q)
-            answer = p[a_s, a_e + 1]
-            f1_score(prediction, ground_truth)
+        # annie: idk what this for loop is doing?
+        # for p, q in zip(paragraph, question):
+        a_s, a_e = self.answer(session, p, q)
+        answer = p[a_s, a_e + 1]
+        true_answer = p[true_s, true_e + 1]
+        # should we be adding these?
+        f1 += f1_score(answer, true_answer)
+        em += exact_match_score(answer, true_answer)
 
         return f1, em
 
@@ -310,15 +334,19 @@ class QASystem(object):
         params = tf.trainable_variables()
         num_params = sum(map(lambda t: np.prod(tf.shape(t.value()).eval()), params))
         toc = time.time()
-        logging.info("Number of params: %d (retreival took %f secs)" % (num_params, toc - tic))
+        logging.info("Number of params: %d (retrieval took %f secs)" % (num_params, toc - tic))
 
+        # split into train and test loops?
         for e in range(self.FLAGS.epochs):
-            for p, q, a in dataset:
-                loss = self.optimize(session, p, q, a)
+            for q, p, a in dataset:
+                q_lengths = [len(x) for x in q]
+                p_lengths = [len(x) for x in p]
+                q = [question + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
+                p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(question)) for paragraph in p]
+                loss = self.optimize(session, q, p, a, q_lengths, p_lengths)
                 # save the model
                 saver = tf.train.Saver()
                 save_path = saver.save(sess, self.FLAGS.train_dir)
                 print("Model saved in file: %s" % save_path)
-                val_loss = self.validate(p_val, q_val, a_val)
-                self.evaluate_answer(session, q_val, p_val)
-                self.evaluate_answer(session, p, q, sample=100)
+                # val_loss = self.validate(q_val, p_val, a_val)
+                self.evaluate_answer(session, p, a[0], a[1])

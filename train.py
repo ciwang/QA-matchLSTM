@@ -13,6 +13,10 @@ from os.path import join as pjoin
 import logging
 
 from collections import defaultdict
+from qa_model import Encoder
+from qa_model import Decoder
+from qa_model import QASystem
+from qa_data import PAD_ID
 
 logging.basicConfig(level=logging.INFO)
 
@@ -82,34 +86,42 @@ def get_normalized_train_dir(train_dir):
 
 def load_dataset(f1, f2, f3, batch_size):
     fd1, fd2, fd3 = open(f1), open(f2), open(f3)
-    batch = []
+    question_batch = []
+    paragraph_batch = []
+    answer_batch = []
     while True:
         line1, line2, line3 = (fd1.readline().rstrip(),
                                 fd2.readline().rstrip(),
                                 fd3.readline().rstrip())
         if not line1:
             break
-        batch.append((line1, line2, line3))
+        ## TODO: need to trim > max length in test set
+        question = map(lambda x: int(x), line1.split())
+        paragraph = map(lambda x: int(x), line2.split())
+        answer = map(lambda x: int(x), line3.split())
+        question_batch.append(question)
+        paragraph_batch.append(paragraph)
+        answer_batch.append(answer)
 
-        if len(batch) == batch_size:
-            yield batch
+        if len(question_batch) == batch_size:
+            yield (question_batch, paragraph_batch, answer_batch)
 
 def generate_histograms(dataset):
     question_lengths = defaultdict(int)
-    context_lengths = defaultdict(int)
+    paragraph_lengths = defaultdict(int)
     answer_lengths = defaultdict(int)
 
     for batch in dataset:
         for line in batch:
             question = len(line[0].split()) // 10
-            context = len(line[1].split()) // 10
+            paragraph = len(line[1].split()) // 10
             span = (int(line[2].split()[1]) - int(line[2].split()[0])) // 10
             question_lengths[question] += 1
-            context_lengths[context] += 1
+            paragraph_lengths[context] += 1
             answer_lengths[span] += 1
 
     print(question_lengths)
-    print(context_lengths)
+    print(paragraph_lengths)
     print(answer_lengths)
 
 def main(_):
@@ -118,16 +130,16 @@ def main(_):
     # use .readlines() to load file ourselves
     # use python generator
     question_path = pjoin(FLAGS.data_dir, "train.ids.question")
-    context_path = pjoin(FLAGS.data_dir, "train.ids.context")
+    paragraph_path = pjoin(FLAGS.data_dir, "train.ids.context")
     answer_path = pjoin(FLAGS.data_dir, "train.span")
 
     # for testing
-    dataset = [(1,1,1), (1,1,1)]
-    # dataset = load_dataset(question_path, context_path, answer_path, 1000)
+    # dataset = [(1,1,1), (1,1,1)]
+    dataset = load_dataset(question_path, paragraph_path, answer_path, FLAGS.batch_size)
     # generate_histograms(dataset)
 
     # loads embedding
-    embed_path = FLAGS.embed_path or pjoin("data", "squad", "glove.trimmed.{}.npz".format(FLAGS.embedding_size))
+    FLAGS.embed_path = FLAGS.embed_path or pjoin("data", "squad", "glove.trimmed.{}.npz".format(FLAGS.embedding_size))
     vocab_path = FLAGS.vocab_path or pjoin(FLAGS.data_dir, "vocab.dat")
     vocab, rev_vocab = initialize_vocab(vocab_path) # one is list and one is dict
 
@@ -154,7 +166,7 @@ def main(_):
         save_train_dir = get_normalized_train_dir(FLAGS.train_dir)
         qa.train(sess, dataset, save_train_dir)
 
-        qa.evaluate_answer(sess, dataset, vocab, FLAGS.evaluate, log=True)
+        # qa.evaluate_answer(sess, dataset, vocab, FLAGS.evaluate, log=True)
 
 if __name__ == "__main__":
     tf.app.run()
