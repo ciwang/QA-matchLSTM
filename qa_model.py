@@ -30,7 +30,6 @@ class Encoder(object):
         self.size = size
         self.vocab_dim = vocab_dim # wat is this
         # pseudocode
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
 
     def encode(self, inputs, masks, encoder_state_input, scope="", reuse=False): #wat is masks
         """
@@ -49,22 +48,38 @@ class Encoder(object):
         """
         # symbolic function takes in Tensorflow object, returns tensorflow object
         # pseudocode
+        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
         with vs.variable_scope(scope, reuse=reuse):
-            _, (fw_s, bw_s) = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, \
-                initial_state_fw=encoder_state_input, initial_state_bw=encoder_state_input, dtype=tf.float64)
 
-        return tf.concat([fw_s, bw_s], 0)
+            # if encoder_state_input != None:
+            #     print(encoder_state_input[0].get_shape())
+            (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, \
+                dtype=tf.float64)
 
-    # def encode_w_attn(self, inputs, masks, prev_states, scope="", reuse=False):
-    #     self.attn_cell = AttnGRUCell(self.size, prev_states)
+        return tf.concat((out_fw, out_bw), 2)
 
-# to manage attention
-# implement without attention first
-# class AttnGRUCell(rnn_cell.GRUCell):
-#     def __init__():
-#         call super class
-#     def __call__():
+#     def encode_w_attn(self, inputs, masks, encoder_state_input, scope="", reuse=False):
+#         self.attn_cell = GRUAttnCell(self.size, encoder_state_input)
+#         with vs.variable_scope(scope, reuse):
+#             o, _ = tf.nn.dynamic_rnn(self.attn_cell, inputs, dtype=tf.float64)
+#         return o
 
+# class GRUAttnCell(tf.contrib.rnn.GRUCell):
+#     def __init__(self, num_units, encoder_output, scope=None):
+#         self.hs = encoder_output
+#         super(GRUAttnCell, self).__init__(num_units)
+
+#     def __call__(self, inputs, state, scope=None):
+#         gru_out, gru_state = super(GRUAttnCell, self).__call__(inputs, state, scope)
+#         with vs.variable_scope(scope or type(self).__name__):
+#             with vs.variable_scope("Attn"):
+#                 ht = tf.contrib.layers.fully_connected(inputs=gru_out, num_outputs=self._num_units)
+#                 ht = tf.expand_dims(ht, axis=1)
+#             scores = tf.reduce_sum(self.hs * ht, reduction_indices=2, keep_dims=True)
+#             context = tf.reduce_sum(self.hs * scores, reduction_indices=1)
+#             with vs.variable_scope("AttnConcat"):
+#                 out = tf.nn.relu(tf.contrib.layers.fully_connected([context, gru_out], self._num_units))
+#         return (out, out)
 
 class Decoder(object):
     def __init__(self, output_size):
@@ -139,8 +154,10 @@ class QASystem(object):
         :return:
         """
         encoder = Encoder(self.FLAGS.state_size, self.FLAGS.embedding_size)
-        h_q = encoder.encode(self.questions_var, self.q_masks_placeholder, None)
-        h_p = encoder.encode(self.paragraphs_var, self.p_masks_placeholder, h_q, reuse=True)
+        output_q = encoder.encode(self.questions_var, self.q_masks_placeholder, None)
+        h_q = output_q[:, -1, :]
+        output_p = encoder.encode(self.paragraphs_var, self.p_masks_placeholder, h_q, reuse=True)
+        h_p = output_p[:, -1, :]
         decoder = Decoder(self.FLAGS.output_size)
         self.a_s, self.a_e = decoder.decode((h_p, h_q))
 
@@ -342,7 +359,7 @@ class QASystem(object):
                 q_lengths = [len(x) for x in q]
                 p_lengths = [len(x) for x in p]
                 q = [question + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
-                p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(question)) for paragraph in p]
+                p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
                 loss = self.optimize(session, q, p, a, q_lengths, p_lengths)
                 # save the model
                 saver = tf.train.Saver()
