@@ -157,7 +157,7 @@ class QASystem(object):
         h_qs = [output_q[:, i, :] for i in range(max_t)]
         for s in range(max_t):
             h_s = output_p[:, s, :]
-            weights = [tf.reduce_sum(h_s * h_q) for h_q in h_qs]
+            weights = tf.reduce_sum(tf.multiply(h_qs, h_s), axis=[1,2])
             c_s = tf.reduce_sum(tf.multiply(weights, h_qs), axis=0) #batch_size x output_size
             h_att = tf.matmul(tf.concat((c_s, h_s), 1), W)
             attention_p.append(h_att)
