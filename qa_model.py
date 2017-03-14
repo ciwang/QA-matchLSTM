@@ -103,7 +103,7 @@ class Decoder(object):
         with vs.variable_scope("start"):
             # start index of answer
             a_s = tf.contrib.layers.fully_connected([h_q, h_p],
-                num_outputs=self.output_size,]
+                num_outputs=self.output_size,
                 activation_fn=None)
         with vs.variable_scope("end"):
             # end index of answer
