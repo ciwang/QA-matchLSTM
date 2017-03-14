@@ -16,7 +16,6 @@ from collections import defaultdict
 from qa_model import Encoder
 from qa_model import Decoder
 from qa_model import QASystem
-from qa_data import PAD_ID
 
 logging.basicConfig(level=logging.INFO)
 
