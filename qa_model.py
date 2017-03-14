@@ -102,17 +102,19 @@ class Decoder(object):
         # each 2-d TF variable
         with vs.variable_scope("start"):
             # start index of answer
-            a_s = tf.contrib.layers.fully_connected([h_q, h_p],
+            a_s = tf.contrib.layers.fully_connected(h_q,
                 num_outputs=self.output_size,
                 activation_fn=None)
         with vs.variable_scope("end"):
             # end index of answer
-            a_e = tf.contrib.layers.fully_connected([h_q, h_p],
+            a_e = tf.contrib.layers.fully_connected(h_q,
                 num_outputs=self.output_size,
                 activation_fn=None)
 
         # linear function:
         # h_q W + b + h_p W + b
+        print(a_s)
+        print(a_e)
         return (a_s, a_e)
 
 class QASystem(object):
@@ -236,7 +238,7 @@ class QASystem(object):
 
         return outputs
 
-    def decode(self, session, test_p, test_q):
+    def decode(self, session, test_p, test_q, p_masks, q_masks):
         """
         Returns the probability distribution over different positions in the paragraph
         so that other methods like self.answer() will be able to work properly
@@ -246,8 +248,10 @@ class QASystem(object):
 
         # fill in this feed_dictionary like:
         # input_feed['test_x'] = test_x
-        input_feed[self.paragraph] = test_p
-        input_feed[self.question] = test_q
+        input_feed[self.paragraphs_placeholder] = test_p
+        input_feed[self.questions_placeholder] = test_q
+        input_feed[self.p_masks_placeholder] = p_masks
+        input_feed[self.q_masks_placeholder] = q_masks
 
         output_feed = [self.a_s, self.a_e]
 
@@ -255,9 +259,9 @@ class QASystem(object):
 
         return outputs
 
-    def answer(self, session, test_p, test_q):
+    def answer(self, session, test_p, test_q, p_masks, q_masks):
 
-        yp, yp2 = self.decode(session, test_p, test_q)
+        yp, yp2 = self.decode(session, test_p, test_q, p_masks, q_masks)
 
         a_s = np.argmax(yp, axis=1)
         a_e = np.argmax(yp2, axis=1)
@@ -279,12 +283,12 @@ class QASystem(object):
         valid_cost = 0
 
         for valid_x, valid_y in valid_dataset:
-          valid_cost = self.test(sess, valid_x, valid_y)
+          valid_cost += self.test(sess, valid_x, valid_y)
 
 
         return valid_cost
 
-    def evaluate_answer(self, session, p, true_s, true_e, sample=100, log=False):
+    def evaluate_answer(self, session, dataset, sample=100, log=False):
         """
         Evaluate the model's performance using the harmonic mean of F1 and Exact Match (EM)
         with the set of true answer labels
@@ -299,24 +303,35 @@ class QASystem(object):
         :param log: whether we print to std out stream
         :return:
         """
-        from evaluate.py import f1_score, exact_match_score
-
         f1 = 0.
         em = 0.
 
+        # TODO: should randomly sample instead of grabbing first 100?
+        count = 0
+        # a is list of tuples
+        for q, p, a in dataset:
+            if count >= sample: break
+
+            q_lengths = [len(x) for x in q]
+            p_lengths = [len(x) for x in p]
+            q = [question + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
+            p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
+            a_s, a_e = self.answer(session, p, q, p_masks, q_masks)
+
+            for i in len(q):
+                answer = p[a_s[i], a_e[i] + 1]
+                true_answer = p[a[i][0], a[i][1] + 1]
+
+                f1 += f1_score(answer, true_answer)
+                em += exact_match_score(answer, true_answer)
+
+            count += len(q)
+
+        f1 /= sample
+        em /= sample
+
         if log:
             logging.info("F1: {}, EM: {}, for {} samples".format(f1, em, sample))
-
-        # annie: idk what this for loop is doing?
-        # for p, q in zip(paragraph, question):
-        a_s, a_e = self.answer(session, p, q)
-        answer = p[a_s, a_e + 1]
-        true_answer = p[true_s, true_e + 1]
-        # should we be adding these?
-        f1 += f1_score(answer, true_answer)
-        em += exact_match_score(answer, true_answer)
-
-        return f1, em
 
     def train(self, session, dataset, train_dir):
         """
@@ -354,6 +369,8 @@ class QASystem(object):
         toc = time.time()
         logging.info("Number of params: %d (retrieval took %f secs)" % (num_params, toc - tic))
 
+        dataset = list(dataset) # is this sketch or nah?
+
         # split into train and test loops?
         for e in range(self.FLAGS.epochs):
             for q, p, a in dataset:
@@ -362,9 +379,10 @@ class QASystem(object):
                 q = [question + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
                 p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
                 loss = self.optimize(session, q, p, a, q_lengths, p_lengths)
-                # save the model
-                saver = tf.train.Saver()
-                save_path = saver.save(sess, self.FLAGS.train_dir)
-                print("Model saved in file: %s" % save_path)
                 # val_loss = self.validate(q_val, p_val, a_val)
-                self.evaluate_answer(session, p, a[0], a[1])
+            # TODO: shuffle after each epoch
+            # save the model
+            saver = tf.train.Saver()
+            save_path = saver.save(session, self.FLAGS.train_dir)
+            print("Model saved in file: %s" % save_path)
+            self.evaluate_answer(session, dataset, log=True)

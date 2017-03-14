@@ -85,10 +85,13 @@ def get_normalized_train_dir(train_dir):
     return global_train_dir
 
 def load_dataset(f1, f2, f3, batch_size):
+    print("bitch")
     fd1, fd2, fd3 = open(f1), open(f2), open(f3)
+
     question_batch = []
     paragraph_batch = []
     answer_batch = []
+
     while True:
         line1, line2, line3 = (fd1.readline().rstrip(),
                                 fd2.readline().rstrip(),
@@ -105,6 +108,9 @@ def load_dataset(f1, f2, f3, batch_size):
 
         if len(question_batch) == batch_size:
             yield (question_batch, paragraph_batch, answer_batch)
+            question_batch = []
+            paragraph_batch = []
+            answer_batch = []
 
 def generate_histograms(dataset):
     question_lengths = defaultdict(int)
