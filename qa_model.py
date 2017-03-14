@@ -85,7 +85,7 @@ class Decoder(object):
     def __init__(self, output_size):
         self.output_size = output_size
 
-    def decode(self, knowledge_rep):
+    def decode(self, h_p, h_q):
         """
         takes in a knowledge representation
         and output a probability estimation over
@@ -97,13 +97,13 @@ class Decoder(object):
                               decided by how you choose to implement the encoder
         :return:
         """
-        h_q, h_p = knowledge_rep
         # given: h_q, h_p (hidden representations of question and paragraph)
+        # TODO: CUT DOWN TO BATCH_SIZE
         # each 2-d TF variable
         with vs.variable_scope("start"):
             # start index of answer
             a_s = tf.contrib.layers.fully_connected([h_q, h_p],
-                num_outputs=self.output_size,
+                num_outputs=self.output_size,]
                 activation_fn=None)
         with vs.variable_scope("end"):
             # end index of answer
@@ -159,7 +159,7 @@ class QASystem(object):
         output_p = encoder.encode(self.paragraphs_var, self.p_masks_placeholder, h_q, reuse=True)
         h_p = output_p[:, -1, :]
         decoder = Decoder(self.FLAGS.output_size)
-        self.a_s, self.a_e = decoder.decode((h_p, h_q))
+        self.a_s, self.a_e = decoder.decode(h_p, h_q)
 
 
     def setup_loss(self):
@@ -168,8 +168,8 @@ class QASystem(object):
         :return:
         """
         with vs.variable_scope("loss"):
-            loss_s = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.a_s, labels=self.start_answer)
-            loss_e = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.a_e, labels=self.end_answer)
+            loss_s = tf.nn.softmax_cross_entropy_with_logits(labels=self.start_answer, logits=self.a_s)
+            loss_e = tf.nn.softmax_cross_entropy_with_logits(labels=self.end_answer, logits=self.a_e)
             self.loss = loss_s + loss_e
 
     def setup_training_op(self, loss):
@@ -208,6 +208,7 @@ class QASystem(object):
         one_hot_end = np.zeros((a_ends.size, self.FLAGS.output_size))
         one_hot_start[np.arange(a_starts.size), a_starts] = 1
         one_hot_end[np.arange(a_ends.size), a_ends] = 1
+
         input_feed[self.start_answer] = one_hot_start
         input_feed[self.end_answer] = one_hot_end
 
