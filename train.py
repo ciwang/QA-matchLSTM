@@ -116,13 +116,13 @@ def generate_histograms(dataset):
     paragraph_lengths = defaultdict(int)
     answer_lengths = defaultdict(int)
 
-    for batch in dataset:
-        for line in batch:
-            question = len(line[0].split()) // 10
-            paragraph = len(line[1].split()) // 10
-            span = (int(line[2].split()[1]) - int(line[2].split()[0])) // 10
+    for q, p, a in dataset:
+        for i in range(len(q)):
+            question = len(q[i]) // 10
+            paragraph = len(p[i]) // 10
+            span = (a[i][1] - a[i][0]) // 10
             question_lengths[question] += 1
-            paragraph_lengths[context] += 1
+            paragraph_lengths[paragraph] += 1
             answer_lengths[span] += 1
 
     print(question_lengths)
