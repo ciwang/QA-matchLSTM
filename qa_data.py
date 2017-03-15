@@ -26,14 +26,15 @@ UNK_ID = 2
 
 def setup_args():
     parser = argparse.ArgumentParser()
-    code_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-    vocab_dir = os.path.join("data", "squad")
-    glove_dir = os.path.join("download", "dwr")
-    source_dir = os.path.join("data", "squad")
+    home = os.path.join(os.path.dirname(os.path.realpath(__file__)))
+    vocab_dir = os.path.join(home, "data", "squad")
+    glove_dir = os.path.join(home, "data", "dwr")
+    source_dir = os.path.join(home, "data", "squad")
     parser.add_argument("--source_dir", default=source_dir)
     parser.add_argument("--glove_dir", default=glove_dir)
     parser.add_argument("--vocab_dir", default=vocab_dir)
-    parser.add_argument("--glove_dim", default=50, type=int)
+    parser.add_argument("--glove_dim", default=100, type=int)
+    parser.add_argument("--random_init", default=True, type=bool)
     return parser.parse_args()
 
 
@@ -57,15 +58,17 @@ def initialize_vocabulary(vocabulary_path):
         raise ValueError("Vocabulary file %s not found.", vocabulary_path)
 
 
-def process_glove(args, vocab_list, save_path, size=4e5):
+def process_glove(args, vocab_list, save_path, size=4e5, random_init=True):
     """
     :param vocab_list: [vocab]
     :return:
     """
     if not gfile.Exists(save_path + ".npz"):
         glove_path = os.path.join(args.glove_dir, "glove.6B.{}d.txt".format(args.glove_dim))
-        glove = np.zeros((len(vocab_list), args.glove_dim))
-        not_found = 0
+        if random_init:
+            glove = np.random.randn(len(vocab_list), args.glove_dim)
+        else:
+            glove = np.zeros((len(vocab_list), args.glove_dim))
         with open(glove_path, 'r') as fh:
             for line in tqdm(fh, total=size):
                 array = line.lstrip().rstrip().split(" ")
@@ -74,19 +77,16 @@ def process_glove(args, vocab_list, save_path, size=4e5):
                 if word in vocab_list:
                     idx = vocab_list.index(word)
                     glove[idx, :] = vector
-                elif word.capitalize() in vocab_list:
+                if word.capitalize() in vocab_list:
                     idx = vocab_list.index(word.capitalize())
                     glove[idx, :] = vector
-                elif word.lower() in vocab_list:
+                if word.lower() in vocab_list:
                     idx = vocab_list.index(word.lower())
                     glove[idx, :] = vector
-                elif word.upper() in vocab_list:
+                if word.upper() in vocab_list:
                     idx = vocab_list.index(word.upper())
                     glove[idx, :] = vector
-                else:
-                    not_found += 1
-        found = size - not_found
-        print("{}/{} of word vocab have corresponding vectors in {}".format(found, len(vocab_list), glove_path))
+
         np.savez_compressed(save_path, glove=glove)
         print("saved trimmed glove matrix at: {}".format(save_path))
 
@@ -145,6 +145,7 @@ if __name__ == '__main__':
 
     train_path = pjoin(args.source_dir, "train")
     valid_path = pjoin(args.source_dir, "val")
+    dev_path = pjoin(args.source_dir, "dev")
 
     create_vocabulary(vocab_path,
                       [pjoin(args.source_dir, "train.context"),
@@ -156,7 +157,8 @@ if __name__ == '__main__':
     # ======== Trim Distributed Word Representation =======
     # If you use other word representations, you should change the code below
 
-    process_glove(args, rev_vocab, args.source_dir + "/glove.trimmed.{}".format(args.glove_dim))
+    process_glove(args, rev_vocab, args.source_dir + "/glove.trimmed.{}".format(args.glove_dim),
+                  random_init=args.random_init)
 
     # ======== Creating Dataset =========
     # We created our data files seperately

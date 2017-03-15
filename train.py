@@ -84,10 +84,13 @@ def get_normalized_train_dir(train_dir):
     return global_train_dir
 
 def load_dataset(f1, f2, f3, batch_size):
+    print("bitch")
     fd1, fd2, fd3 = open(f1), open(f2), open(f3)
+
     question_batch = []
     paragraph_batch = []
     answer_batch = []
+
     while True:
         line1, line2, line3 = (fd1.readline().rstrip(),
                                 fd2.readline().rstrip(),
@@ -104,6 +107,9 @@ def load_dataset(f1, f2, f3, batch_size):
 
         if len(question_batch) == batch_size:
             yield (question_batch, paragraph_batch, answer_batch)
+            question_batch = []
+            paragraph_batch = []
+            answer_batch = []
 
 def generate_histograms(dataset):
     question_lengths = defaultdict(int)
@@ -132,9 +138,14 @@ def main(_):
     paragraph_path = pjoin(FLAGS.data_dir, "train.ids.context")
     answer_path = pjoin(FLAGS.data_dir, "train.span")
 
+    val_question_path = pjoin(FLAGS.data_dir, "val.ids.question")
+    val_paragraph_path = pjoin(FLAGS.data_dir, "val.ids.context")
+    val_answer_path = pjoin(FLAGS.data_dir, "val.span")
+
     # for testing
     # dataset = [(1,1,1), (1,1,1)]
     dataset = load_dataset(question_path, paragraph_path, answer_path, FLAGS.batch_size)
+    val_dataset = load_dataset(val_question_path, val_paragraph_path, val_answer_path, FLAGS.batch_size)
     # generate_histograms(dataset)
 
     # loads embedding
@@ -163,7 +174,7 @@ def main(_):
         initialize_model(sess, qa, load_train_dir)
 
         save_train_dir = get_normalized_train_dir(FLAGS.train_dir)
-        qa.train(sess, dataset, save_train_dir)
+        qa.train(sess, dataset, val_dataset, save_train_dir, rev_vocab)
 
         # qa.evaluate_answer(sess, dataset, vocab, FLAGS.evaluate, log=True)
 
