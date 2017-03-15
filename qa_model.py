@@ -200,7 +200,7 @@ class QASystem(object):
             self.loss = loss_s + loss_e
 
     def setup_training_op(self):
-        self.train_op = get_optimizer("sgd")(self.config.lr).minimize(self.loss)
+        self.train_op = get_optimizer("sgd")(self.lr).minimize(self.loss)
 
     def setup_embeddings(self):
         """
@@ -297,7 +297,7 @@ class QASystem(object):
 
     def answer(self, session, test_q, test_p, q_masks, p_masks):
 
-        yp, yp2 = self.decode(session, test_p, test_q, q_masks, p_masks)
+        yp, yp2 = self.decode(session, test_p, test_q, p_masks, q_masks)
 
         a_s = np.argmax(yp, axis=1)
         a_e = np.argmax(yp2, axis=1)
@@ -357,6 +357,7 @@ class QASystem(object):
 
             q_lengths = [len(x) for x in q]
             p_lengths = [len(x) for x in p]
+            q = [question + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
             p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
             a_s, a_e = self.answer(session, q, p, q_lengths, p_lengths)
 
@@ -421,17 +422,17 @@ class QASystem(object):
         # split into train and test loops?
         for e in range(self.FLAGS.epochs):
             for q, p, a in dataset:
+	        q = [question[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
+                p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
                 q_lengths = [len(x) for x in q]
                 p_lengths = [len(x) for x in p]
-                q = [question + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
-                p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
                 loss = self.optimize(session, q, p, a, q_lengths, p_lengths)
                 
             # TODO: shuffle after each epoch
             # save the model
 
             saver = tf.train.Saver()
-            results_path = pjoin(self.FLAGS.train_dir, "results/{:%Y%m%d_%H%M%S}/".format(datetime.now()))
+            results_path = os.path.join(self.FLAGS.train_dir, "results/{:%Y%m%d_%H%M%S}/".format(datetime.datetime.now()))
 	    model_path = results_path + "model.weights/"
 	    if not os.path.exists(model_path):
 		os.makedirs(model_path)
