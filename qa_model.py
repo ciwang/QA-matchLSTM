@@ -2,6 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import datetime
+import os
 import time
 import logging
 
@@ -53,7 +55,7 @@ class Encoder(object):
 
             # if encoder_state_input != None:
             #     print(encoder_state_input[0].get_shape())
-            # TODO: reverse input for reverse direction
+            # TODO: reverse input for reverse direction (masking)
             (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, \
                 initial_state_fw=encoder_state_input, initial_state_bw=encoder_state_input, dtype=tf.float64)
 
@@ -156,7 +158,8 @@ class QASystem(object):
         attention_p = []
         h_qs = [output_q[:, i, :] for i in range(max_t)]
         for s in range(max_t):
-            h_s = output_p[:, s, :]
+            if s % 10 == 0: print(s)
+	    h_s = output_p[:, s, :]
             weights = [tf.reduce_sum(h_s * h_q) for h_q in h_qs]
             c_s = tf.reduce_sum(tf.multiply(weights, h_qs), axis=0) #batch_size x output_size
             h_att = tf.matmul(tf.concat((c_s, h_s), 1), W)
@@ -176,13 +179,13 @@ class QASystem(object):
         h_q = output_q[:, -1, :]
         output_p = encoder.encode(self.paragraphs_var, self.p_masks_placeholder, h_q, reuse=True)
         h_p = output_p[:, -1, :]
-        attention_p = self.calculate_attention(output_q, output_p)
+        # attention_p = self.calculate_attention(output_q, output_p)
         # output_attention_p = encoder.encode_w_attn(self.paragraphs_var, self.p_masks_placeholder, h_p)
         # attention_p = output_attention_p[:, -1, :]
         decoder = Decoder(self.FLAGS.output_size)
         #self.a_s, self.a_e = decoder.decode(h_q, h_p)
         inputs = tf.concat((output_q, output_p), 2)
-        self.a_s, self.a_e = decoder.decode(attention_p)
+        self.a_s, self.a_e = decoder.decode(inputs)
 
 
     def setup_loss(self):
@@ -354,7 +357,6 @@ class QASystem(object):
 
             q_lengths = [len(x) for x in q]
             p_lengths = [len(x) for x in p]
-            q = [question + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
             p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
             a_s, a_e = self.answer(session, q, p, q_lengths, p_lengths)
 
@@ -423,9 +425,13 @@ class QASystem(object):
                 
             # TODO: shuffle after each epoch
             # save the model
-            # TODO: move out of for loop
-                saver = tf.train.Saver()
-                save_path = saver.save(session, self.FLAGS.train_dir)
-                print("Model saved in file: %s" % save_path)
-                val_loss = self.validate(session, val_dataset, log=True)
-                self.evaluate_answer(session, dataset, rev_vocab, log=True)
+
+            saver = tf.train.Saver()
+            results_path = pjoin(self.FLAGS.train_dir, "results/{:%Y%m%d_%H%M%S}/".format(datetime.now()))
+	    model_path = results_path + "model.weights/"
+	    if not os.path.exists(model_path):
+		os.makedirs(model_path)
+	    save_path = saver.save(session, model_path)
+            print("Model saved in file: %s" % save_path)
+            val_loss = self.validate(session, val_dataset, log=True)
+            self.evaluate_answer(session, dataset, rev_vocab, log=True)
