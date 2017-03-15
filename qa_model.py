@@ -146,6 +146,7 @@ class QASystem(object):
             self.setup_embeddings()
             self.setup_system()
             self.setup_loss()
+            self.setup_training_op()
 
         # ==== set up training/updating procedure ====
         pass
@@ -159,8 +160,8 @@ class QASystem(object):
         h_qs = [output_q[:, i, :] for i in range(max_t)]
         for s in range(max_t):
             if s % 10 == 0: print(s)
-	    h_s = output_p[:, s, :]
-            weights = [tf.reduce_sum(h_s * h_q) for h_q in h_qs]
+            h_s = output_p[:, s, :]
+            weights = tf.reduce_sum(tf.multiply(h_qs, h_s), axis=[1,2])
             c_s = tf.reduce_sum(tf.multiply(weights, h_qs), axis=0) #batch_size x output_size
             h_att = tf.matmul(tf.concat((c_s, h_s), 1), W)
             attention_p.append(h_att)
@@ -198,8 +199,8 @@ class QASystem(object):
             loss_e = tf.nn.softmax_cross_entropy_with_logits(labels=self.end_answer, logits=self.a_e)
             self.loss = loss_s + loss_e
 
-    def setup_training_op(self, loss):
-        self.train_op = get_optimizer("sgd")(self.config.lr).minimize(loss)
+    def setup_training_op(self):
+        self.train_op = get_optimizer("sgd")(self.config.lr).minimize(self.loss)
 
     def setup_embeddings(self):
         """
@@ -209,7 +210,7 @@ class QASystem(object):
         with vs.variable_scope("embeddings"):
             # load data
             glove_matrix = np.load(self.FLAGS.embed_path)['glove']
-            embeddings = tf.constant(glove_matrix)
+            embeddings = tf.Variable(glove_matrix, trainable=False)
             self.questions_var = tf.nn.embedding_lookup(embeddings, self.questions_placeholder)
             self.paragraphs_var = tf.nn.embedding_lookup(embeddings, self.paragraphs_placeholder)
 
@@ -238,7 +239,6 @@ class QASystem(object):
         input_feed[self.start_answer] = one_hot_start
         input_feed[self.end_answer] = one_hot_end
 
-        self.train_op = get_optimizer("sgd")(self.lr).minimize(self.loss)
         output_feed = [self.train_op, self.loss]
 
         outputs = session.run(output_feed, input_feed)
@@ -413,6 +413,10 @@ class QASystem(object):
 
         dataset = list(dataset) # is this sketch or nah?
         val_dataset = list(val_dataset)
+
+        # print initial loss
+        val_loss = self.validate(session, val_dataset, log=True)
+        self.evaluate_answer(session, dataset, rev_vocab, log=True)
 
         # split into train and test loops?
         for e in range(self.FLAGS.epochs):
