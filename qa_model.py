@@ -412,6 +412,10 @@ class QASystem(object):
         dataset = list(dataset) # is this sketch or nah?
         val_dataset = list(val_dataset)
 
+        # print initial loss
+        val_loss = self.validate(session, val_dataset, log=True)
+        self.evaluate_answer(session, dataset, rev_vocab, log=True)
+
         # split into train and test loops?
         for e in range(self.FLAGS.epochs):
             for q, p, a in dataset:
