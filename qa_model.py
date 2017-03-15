@@ -144,6 +144,7 @@ class QASystem(object):
             self.setup_embeddings()
             self.setup_system()
             self.setup_loss()
+            self.setup_training_op()
 
         # ==== set up training/updating procedure ====
         pass
@@ -195,8 +196,8 @@ class QASystem(object):
             loss_e = tf.nn.softmax_cross_entropy_with_logits(labels=self.end_answer, logits=self.a_e)
             self.loss = loss_s + loss_e
 
-    def setup_training_op(self, loss):
-        self.train_op = get_optimizer("sgd")(self.config.lr).minimize(loss)
+    def setup_training_op(self):
+        self.train_op = get_optimizer("sgd")(self.config.lr).minimize(self.loss)
 
     def setup_embeddings(self):
         """
@@ -206,7 +207,7 @@ class QASystem(object):
         with vs.variable_scope("embeddings"):
             # load data
             glove_matrix = np.load(self.FLAGS.embed_path)['glove']
-            embeddings = tf.constant(glove_matrix)
+            embeddings = tf.Variable(glove_matrix, trainable=False)
             self.questions_var = tf.nn.embedding_lookup(embeddings, self.questions_placeholder)
             self.paragraphs_var = tf.nn.embedding_lookup(embeddings, self.paragraphs_placeholder)
 
@@ -235,7 +236,6 @@ class QASystem(object):
         input_feed[self.start_answer] = one_hot_start
         input_feed[self.end_answer] = one_hot_end
 
-        self.train_op = get_optimizer("sgd")(self.lr).minimize(self.loss)
         output_feed = [self.train_op, self.loss]
 
         outputs = session.run(output_feed, input_feed)
