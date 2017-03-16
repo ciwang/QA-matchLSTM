@@ -6,6 +6,7 @@ import datetime
 import os
 import time
 import logging
+import random
 
 import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
@@ -16,7 +17,6 @@ from evaluate import exact_match_score, f1_score
 from qa_data import PAD_ID
 
 logging.basicConfig(level=logging.INFO)
-
 
 def get_optimizer(opt):
     if opt == "adam":
@@ -52,10 +52,6 @@ class Encoder(object):
         # pseudocode
         self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
         with vs.variable_scope(scope, reuse=reuse):
-
-            # if encoder_state_input != None:
-            #     print(encoder_state_input[0].get_shape())
-            # TODO: reverse input for reverse direction (masking)
             (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, \
                 initial_state_fw=encoder_state_input, initial_state_bw=encoder_state_input, dtype=tf.float64)
 
@@ -326,7 +322,6 @@ class QASystem(object):
             p_lengths = [len(x) for x in p]
             out = self.test(sess, q, p, a, q_lengths, p_lengths)
             valid_cost += sum(out[0])
-            print(valid_cost)
 
         if log:
             logging.info("Validate cost: {}".format(valid_cost))
@@ -351,7 +346,6 @@ class QASystem(object):
         f1 = 0.
         em = 0.
 
-        # TODO: should randomly sample instead of grabbing first 100?
         count = 0
         # a is list of tuples
         for q, p, a in dataset:
@@ -415,32 +409,37 @@ class QASystem(object):
         logging.info("Number of params: %d (retrieval took %f secs)" % (num_params, toc - tic))
 
         dataset = list(dataset) # is this sketch or nah?
+        print (len(dataset))
         val_dataset = list(val_dataset)
 
         # print initial loss
-        val_loss = self.validate(session, val_dataset, log=True)
-        self.evaluate_answer(session, dataset, rev_vocab, log=True)
+        # val_loss = self.validate(session, val_dataset, log=True)
+        # self.evaluate_answer(session, dataset, rev_vocab, log=True)
 
         # split into train and test loops?
+        num_processed = 0
         for e in range(self.FLAGS.epochs):
+            random.shuffle(dataset)
             for q, p, a in dataset:
+                tic = time.time()
                 q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - len(question)) for question in q]
                 p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
                 q_lengths = [len(x) for x in q]
                 p_lengths = [len(x) for x in p]
                 loss = self.optimize(session, q, p, a, q_lengths, p_lengths)
-                print("optimized")
+                num_processed += 1
+                toc = time.time()
+                if (num_processed % 100 == 0):
+                    print("Train ETA = ", (len(dataset) - num_processed) * (toc - tic))
                 # diagnostics on memory used
                 
-            # TODO: shuffle after each epoch
             # save the model
-
             saver = tf.train.Saver()
             results_path = os.path.join(self.FLAGS.train_dir, "results/{:%Y%m%d_%H%M%S}/".format(datetime.datetime.now()))
-    	    model_path = results_path + "model.weights/"
-    	    if not os.path.exists(model_path):
-    		  os.makedirs(model_path)
-    	    save_path = saver.save(session, model_path)
+            model_path = results_path + "model.weights/"
+            if not os.path.exists(model_path):
+    		    os.makedirs(model_path)
+            save_path = saver.save(session, model_path)
             print("Model saved in file: %s" % save_path)
             val_loss = self.validate(session, val_dataset, log=True)
             self.evaluate_answer(session, dataset, rev_vocab, log=True)

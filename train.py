@@ -23,12 +23,12 @@ logging.basicConfig(level=logging.INFO)
 tf.app.flags.DEFINE_float("learning_rate", 0.01, "Learning rate.")
 tf.app.flags.DEFINE_float("max_gradient_norm", 10.0, "Clip gradients to this norm.")
 tf.app.flags.DEFINE_float("dropout", 0.15, "Fraction of units randomly dropped on non-recurrent connections.")
-tf.app.flags.DEFINE_integer("batch_size", 50, "Batch size to use during training.")
+tf.app.flags.DEFINE_integer("batch_size", 10, "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("epochs", 10, "Number of epochs to train.")
 # reduce # of units in hidden layer (default is 200)
 tf.app.flags.DEFINE_integer("state_size", 100, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("question_size", 70, "The output size of your question.")
-tf.app.flags.DEFINE_integer("output_size", 766, "The output size of your model.")
+tf.app.flags.DEFINE_integer("output_size", 300, "The output size of your model.")
 tf.app.flags.DEFINE_integer("embedding_size", 100, "Size of the pretrained vocabulary.")
 tf.app.flags.DEFINE_string("data_dir", "data/squad", "SQuAD directory (default ./data/squad)")
 tf.app.flags.DEFINE_string("train_dir", "train", "Training directory to save the model parameters (default: ./train).")
@@ -100,8 +100,11 @@ def load_dataset(f1, f2, f3, batch_size):
         if not line1:
             break
         ## TODO: need to trim > max length in test set
-        question = map(lambda x: int(x), line1.split())
         paragraph = map(lambda x: int(x), line2.split())
+        # TODO: stop removing longer training paragraphs
+        if len(paragraph) > FLAGS.output_size:
+            continue
+        question = map(lambda x: int(x), line1.split())
         answer = map(lambda x: int(x), line3.split())
         question_batch.append(question)
         paragraph_batch.append(paragraph)
