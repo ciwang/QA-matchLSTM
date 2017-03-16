@@ -409,7 +409,6 @@ class QASystem(object):
         logging.info("Number of params: %d (retrieval took %f secs)" % (num_params, toc - tic))
 
         dataset = list(dataset) # is this sketch or nah?
-        print (len(dataset))
         val_dataset = list(val_dataset)
 
         # print initial loss
@@ -430,7 +429,7 @@ class QASystem(object):
                 num_processed += 1
                 toc = time.time()
                 if (num_processed % 100 == 0):
-                    print("Train ETA = ", (len(dataset) - num_processed) * (toc - tic))
+                    logging.info("Train Epoch ETA = ", (len(dataset) - num_processed) * (toc - tic))
                 # diagnostics on memory used
                 
             # save the model
