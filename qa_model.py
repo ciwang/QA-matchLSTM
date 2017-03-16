@@ -101,7 +101,8 @@ class MatchLSTMCell(tf.contrib.rnn.BasicLSTMCell):
 
 
 class Decoder(object):
-    def __init__(self, output_size):
+    def __init__(self, size, output_size):
+        self.size = size
         self.output_size = output_size
 
     def decode(self, inputs):
@@ -119,21 +120,57 @@ class Decoder(object):
         # given: h_q, h_p (hidden representations of question and paragraph)
         # TODO: CUT DOWN TO BATCH_SIZE
         # each 2-d TF variable
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.output_size, state_is_tuple=False)
+        self.boundary_cell = BoundaryCell(self.size, inputs, state_is_tuple=False)
         #tf.expand_dims(h_q, axis=2)
         #tf.expand_dims(h_p, axis=2)
         #print(h_q.get_shape())
         #print(h_p.get_shape())
         with vs.variable_scope("start"):
             # start index of answer
-            output_s, _ = tf.nn.dynamic_rnn(self.cell, inputs, dtype=tf.float64)
+            output_s, _ = tf.nn.dynamic_rnn(self.boundary_cell, inputs, dtype=tf.float64)
         with vs.variable_scope("end"):
             # end index of answer
-            output_e, _ = tf.nn.dynamic_rnn(self.cell, inputs, dtype=tf.float64)
+            output_e, _ = tf.nn.dynamic_rnn(self.boundary_cell, inputs, dtype=tf.float64)
 
         # linear function:
         # h_q W + b + h_p W + b
         return (output_s[:, -1, :], output_e[:, -1, :])
+
+class BoundaryCell(tf.contrib.rnn.BasicLSTMCell):
+    def __init__(self, num_units, input_r, state_is_tuple, scope=None):
+        self.H_r = input_r
+        self.size_p = self.H_r.get_shape().as_list()[1]
+        super(BoundaryCell, self).__init__(num_units, state_is_tuple=state_is_tuple)
+
+    def __call__(self, inputs, state, scope=None):
+        # Params:
+        # inputs - h_p_t
+        # state - h_r_{t-1}
+        with tf.variable_scope("boundary"):
+            V = tf.get_variable("V", shape=(2 * self._num_units, self._num_units),
+                        initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            W_a = tf.get_variable("W_a", shape=(2 * self._num_units, self._num_units),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            b_a = tf.get_variable("b_a", shape=(1, self._num_units),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            v = tf.get_variable("v", shape=(self._num_units, 1),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            c = tf.get_variable("c", shape=(),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            H_r = tf.reshape(self.H_r, [-1, 2 * self._num_units])
+            H_rV = tf.reshape(tf.matmul(H_r, V), [-1, self.size_p, self._num_units])
+            W_ah_a = tf.matmul(state, W_a) + b_a
+            F_k = tf.reshape(tf.tanh(H_rV + tf.expand_dims(W_ah_a, axis=1)), [-1, self._num_units])
+            # reshaping F_kv might be wrong??
+            F_kv = tf.reshape(tf.matmul(F_k, v), [-1, self.size_p])
+            b_k = tf.nn.softmax(F_kv + c) # can expand dim of c if needed
+            b_h = tf.expand_dims(b_k, axis=1)
+            z = tf.reshape(tf.matmul(b_h, self.H_r), [-1, 2 * self._num_units])
+            # H_qalpha = tf.reshape(tf.matmul(alpha, self.H_q), [-1, self._num_units])
+            # z = tf.concat((inputs, H_qalpha), axis=1)
+        output, new_state = super(BoundaryCell, self).__call__(z, state, scope)
+        return output, new_state
+
 
 class QASystem(object):
     def __init__(self, encoder, decoder, FLAGS, *args):
@@ -194,7 +231,7 @@ class QASystem(object):
         H_q = encoder.encode_preprocess(self.questions_var, self.q_masks_placeholder, scope="question")
         H_p = encoder.encode_preprocess(self.paragraphs_var, self.p_masks_placeholder, scope="paragraph")
         H_r = encoder.encode_match(H_q, H_p, self.p_masks_placeholder)
-        decoder = Decoder(self.FLAGS.output_size)
+        decoder = Decoder(self.FLAGS.state_size, self.FLAGS.output_size)
         self.a_s, self.a_e = decoder.decode(H_r)
 
 
