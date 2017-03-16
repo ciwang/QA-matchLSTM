@@ -149,6 +149,7 @@ def main(_):
     dataset = load_dataset(question_path, paragraph_path, answer_path, FLAGS.batch_size)
     val_dataset = load_dataset(val_question_path, val_paragraph_path, val_answer_path, FLAGS.batch_size)
     # generate_histograms(dataset)
+    # generate_histograms(val_dataset)
 
     # loads embedding
     FLAGS.embed_path = FLAGS.embed_path or pjoin("data", "squad", "glove.trimmed.{}.npz".format(FLAGS.embedding_size))

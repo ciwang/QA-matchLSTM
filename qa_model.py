@@ -135,7 +135,7 @@ class QASystem(object):
         # ==== set up placeholder tokens ========
         self.FLAGS = FLAGS
         self.paragraphs_placeholder = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size])
-        self.questions_placeholder = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size])
+        self.questions_placeholder = tf.placeholder(tf.int32, shape=[None, self.FLAGS.question_size])
         self.q_masks_placeholder = tf.placeholder(tf.int32, shape=[None])
         self.p_masks_placeholder = tf.placeholder(tf.int32, shape=[None])
         self.start_answer = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size])
@@ -185,8 +185,8 @@ class QASystem(object):
         # attention_p = output_attention_p[:, -1, :]
         decoder = Decoder(self.FLAGS.output_size)
         #self.a_s, self.a_e = decoder.decode(h_q, h_p)
-        inputs = tf.concat((output_q, output_p), 2)
-        self.a_s, self.a_e = decoder.decode(inputs)
+        #inputs = tf.concat((output_q, output_p), axis=2)
+        self.a_s, self.a_e = decoder.decode(output_p)
 
 
     def setup_loss(self):
@@ -245,7 +245,7 @@ class QASystem(object):
 
         return outputs
 
-    def test(self, session, valid_q, valid_p, valid_a, p_masks, q_masks):
+    def test(self, session, valid_q, valid_p, valid_a, q_masks, p_masks):
         """
         in here you should compute a cost for your validation set
         and tune your hyperparameters according to the validation set performance
@@ -254,8 +254,8 @@ class QASystem(object):
         input_feed = {}
 
         # fill in this feed_dictionary like:
-        input_feed[self.paragraphs_placeholder] = valid_q
-        input_feed[self.questions_placeholder] = valid_p
+        input_feed[self.paragraphs_placeholder] = valid_p
+        input_feed[self.questions_placeholder] = valid_q
         input_feed[self.p_masks_placeholder] = p_masks
         input_feed[self.q_masks_placeholder] = q_masks
         a_starts = np.array([a[0] for a in valid_a])
@@ -274,7 +274,7 @@ class QASystem(object):
 
         return outputs
 
-    def decode(self, session, test_p, test_q, p_masks, q_masks):
+    def decode(self, session, test_q, test_p, q_masks, p_masks):
         """
         Returns the probability distribution over different positions in the paragraph
         so that other methods like self.answer() will be able to work properly
@@ -297,7 +297,7 @@ class QASystem(object):
 
     def answer(self, session, test_q, test_p, q_masks, p_masks):
 
-        yp, yp2 = self.decode(session, test_p, test_q, p_masks, q_masks)
+        yp, yp2 = self.decode(session, test_q, test_p, q_masks, p_masks)
 
         a_s = np.argmax(yp, axis=1)
         a_e = np.argmax(yp2, axis=1)
@@ -319,12 +319,14 @@ class QASystem(object):
         valid_cost = 0
 
         for q, p, a in valid_dataset:
-            q = [question[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
+            # questions in valid_dataset may need to be clipped
+            q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - len(question)) for question in q]
             p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
             q_lengths = [len(x) for x in q]
             p_lengths = [len(x) for x in p]
             out = self.test(sess, q, p, a, q_lengths, p_lengths)
             valid_cost += sum(out[0])
+            print(valid_cost)
 
         if log:
             logging.info("Validate cost: {}".format(valid_cost))
@@ -357,7 +359,7 @@ class QASystem(object):
 
             q_lengths = [len(x) for x in q]
             p_lengths = [len(x) for x in p]
-            q = [question + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
+            q = [question + [PAD_ID] * (self.FLAGS.question_size - len(question)) for question in q]
             p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
             a_s, a_e = self.answer(session, q, p, q_lengths, p_lengths)
 
@@ -422,21 +424,23 @@ class QASystem(object):
         # split into train and test loops?
         for e in range(self.FLAGS.epochs):
             for q, p, a in dataset:
-	        q = [question[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(question)) for question in q]
+                q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - len(question)) for question in q]
                 p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
                 q_lengths = [len(x) for x in q]
                 p_lengths = [len(x) for x in p]
                 loss = self.optimize(session, q, p, a, q_lengths, p_lengths)
+                print("optimized")
+                # diagnostics on memory used
                 
             # TODO: shuffle after each epoch
             # save the model
 
             saver = tf.train.Saver()
             results_path = os.path.join(self.FLAGS.train_dir, "results/{:%Y%m%d_%H%M%S}/".format(datetime.datetime.now()))
-	    model_path = results_path + "model.weights/"
-	    if not os.path.exists(model_path):
-		os.makedirs(model_path)
-	    save_path = saver.save(session, model_path)
+    	    model_path = results_path + "model.weights/"
+    	    if not os.path.exists(model_path):
+    		  os.makedirs(model_path)
+    	    save_path = saver.save(session, model_path)
             print("Model saved in file: %s" % save_path)
             val_loss = self.validate(session, val_dataset, log=True)
             self.evaluate_answer(session, dataset, rev_vocab, log=True)
