@@ -412,8 +412,8 @@ class QASystem(object):
         val_dataset = list(val_dataset)
 
         # print initial loss
-        val_loss = self.validate(session, val_dataset, log=True)
-        self.evaluate_answer(session, dataset, rev_vocab, log=True)
+        # val_loss = self.validate(session, val_dataset, log=True)
+        # self.evaluate_answer(session, dataset, rev_vocab, log=True)
 
         # split into train and test loops?
         num_processed = 0
@@ -429,7 +429,7 @@ class QASystem(object):
                 num_processed += 1
                 toc = time.time()
                 if (num_processed % 100 == 0):
-                    logging.info("Train Epoch ETA = ", (len(dataset) - num_processed) * (toc - tic))
+                    logging.info("Num batches processed = %d | Train Epoch ETA = %f" % (num_processed, (len(dataset) - num_processed) * (toc - tic)))
                 # diagnostics on memory used
                 
             # save the model
