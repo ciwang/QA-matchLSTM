@@ -313,7 +313,7 @@ class QASystem(object):
 
     def answer(self, session, test_q, test_p, q_masks, p_masks):
 
-        _, _, yp, yp2 = self.decode(session, test_q, test_p, q_masks, p_masks)
+        yp, yp2 = self.decode(session, test_q, test_p, q_masks, p_masks)
 
         a_s = np.argmax(yp, axis=1)
         a_e = np.argmax(yp2, axis=1)
