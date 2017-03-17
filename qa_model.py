@@ -196,7 +196,11 @@ class QASystem(object):
             self.loss = loss_s + loss_e
 
     def setup_training_op(self):
-        self.train_op = get_optimizer("sgd")(self.lr).minimize(self.loss)
+        optimizer = get_optimizer(self.FLAGS.optimizer)(self.lr)
+        gradients, variables = map(list, zip(*optimizer.compute_gradients(self.loss)))
+        self.grad_norm = tf.global_norm(gradients)
+        grads_and_vars = zip(gradients, variables)
+        self.train_op = optimizer.apply_gradients(grads_and_vars)
 
     def setup_embeddings(self):
         """
@@ -235,7 +239,7 @@ class QASystem(object):
         input_feed[self.start_answer] = one_hot_start
         input_feed[self.end_answer] = one_hot_end
 
-        output_feed = [self.train_op, self.loss]
+        output_feed = [self.train_op, self.loss, self.grad_norm]
 
         outputs = session.run(output_feed, input_feed)
 
@@ -323,8 +327,10 @@ class QASystem(object):
             out = self.test(sess, q, p, a, q_lengths, p_lengths)
             valid_cost += sum(out[0])
 
+        average_valid_cost = float(valid_cost) / float(len(valid_dataset))
+
         if log:
-            logging.info("Validate cost: {}".format(valid_cost))
+            logging.info("Validate cost: {}".format(average_valid_cost))
 
         return valid_cost
 
@@ -363,8 +369,7 @@ class QASystem(object):
 
                 f1 += f1_score(answer, true_answer)
                 em += exact_match_score(answer, true_answer)
-
-            count += len(q)
+                count += 1
 
         f1 /= sample
         em /= sample
@@ -425,20 +430,21 @@ class QASystem(object):
                 p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
                 q_lengths = [len(x) for x in q]
                 p_lengths = [len(x) for x in p]
-                loss = self.optimize(session, q, p, a, q_lengths, p_lengths)
+                _, loss, grad_norm = self.optimize(session, q, p, a, q_lengths, p_lengths)
                 num_processed += 1
                 toc = time.time()
                 if (num_processed % 100 == 0):
-                    logging.info("Num batches processed = %d | Train Epoch ETA = %f" % (num_processed, (len(dataset) - num_processed) * (toc - tic)))
-                # diagnostics on memory used
+                    logging.info("Epoch = %d | Num batches processed = %d | Train epoch ETA = %f | Grad Norm = %f" % (e, num_processed, (len(dataset) - num_processed) * (toc - tic), grad_norm))
                 
             # save the model
+            num_processed = 0
             saver = tf.train.Saver()
             results_path = os.path.join(self.FLAGS.train_dir, "results/{:%Y%m%d_%H%M%S}/".format(datetime.datetime.now()))
             model_path = results_path + "model.weights/"
             if not os.path.exists(model_path):
     		    os.makedirs(model_path)
             save_path = saver.save(session, model_path)
-            print("Model saved in file: %s" % save_path)
+            logging.info("Model saved in file: %s" % save_path)
+            logging.inf("Evaluating epoch %d", e)
             val_loss = self.validate(session, val_dataset, log=True)
             self.evaluate_answer(session, dataset, rev_vocab, log=True)
