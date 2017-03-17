@@ -50,7 +50,7 @@ class Encoder(object):
         """
         # symbolic function takes in Tensorflow object, returns tensorflow object
         # pseudocode
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
+        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True)
         with vs.variable_scope(scope):
             #(out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, dtype=tf.float64)
             out, _ = tf.nn.dynamic_rnn(self.cell, inputs, sequence_length=masks, dtype=tf.float64)
@@ -58,7 +58,7 @@ class Encoder(object):
         return out
 
     def encode_match(self, input_q, input_p, masks_p, scope="", reuse=False):
-        self.match_cell = MatchLSTMCell(self.size, input_q, state_is_tuple=False)
+        self.match_cell = MatchLSTMCell(self.size, input_q, state_is_tuple=True)
         with vs.variable_scope(scope):
             (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.match_cell, self.match_cell, input_p, \
                 sequence_length=masks_p, dtype=tf.float64)
@@ -79,7 +79,7 @@ class MatchLSTMCell(tf.contrib.rnn.BasicLSTMCell):
                         initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
             W_p = tf.get_variable("W_p", shape=(self._num_units, self._num_units),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            W_r = tf.get_variable("W_r", shape=(2*self._num_units, self._num_units),
+            W_r = tf.get_variable("W_r", shape=(self._num_units, self._num_units),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
             b_p = tf.get_variable("b_p", shape=(self._num_units,),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
@@ -89,7 +89,7 @@ class MatchLSTMCell(tf.contrib.rnn.BasicLSTMCell):
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
             H_q = tf.reshape(self.H_q, [-1, self._num_units])
             H_qW_q = tf.reshape(tf.matmul(H_q, W_q), [-1, self.size_q, self._num_units])
-            tempsum = tf.matmul(inputs, W_p) + tf.matmul(state, W_r) + b_p
+            tempsum = tf.matmul(inputs, W_p) + tf.matmul(state[1], W_r) + b_p
             G = tf.tanh(H_qW_q + tf.expand_dims(tempsum, axis=1)) # doing broadcasting, but can tf.expand_dims(tempsum, axis=1)), tf.tile([1, size_q, 1])
             Gw = tf.reshape(tf.matmul(tf.reshape(G, [-1, self._num_units]), w), [-1, self.size_q])
             alpha = tf.nn.softmax(Gw + b)
@@ -120,7 +120,7 @@ class Decoder(object):
         # given: h_r 
         # TODO: CUT DOWN TO BATCH_SIZE
         # each 2-d TF variable
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
+        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True)
         self.size_p = inputs.get_shape().as_list()[1]
 
         with vs.variable_scope("boundary"):
@@ -436,7 +436,6 @@ class QASystem(object):
         dataset = list(dataset) # is this sketch or nah?
         val_dataset = list(val_dataset)
 
-        # print initial loss
         logging.info("Evaluating initial")
         val_loss = self.validate(session, val_dataset, log=True)
         self.evaluate_answer(session, dataset, "Train", rev_vocab, log=True)
