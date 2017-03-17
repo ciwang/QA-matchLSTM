@@ -333,6 +333,7 @@ class QASystem(object):
         :return:
         """
         valid_cost = 0
+        num_seen = 0
 
         for q, p, a in valid_dataset:
             # questions in valid_dataset may need to be clipped
@@ -342,8 +343,9 @@ class QASystem(object):
             p_lengths = [len(x) for x in p]
             out = self.test(sess, q, p, a, q_lengths, p_lengths)
             valid_cost += sum(out[0])
+            num_seen += len(out)
 
-        average_valid_cost = float(valid_cost) / float(len(valid_dataset))
+        average_valid_cost = float(valid_cost) / float(num_seen)
 
         if log:
             logging.info("Validate cost: {}".format(average_valid_cost))
