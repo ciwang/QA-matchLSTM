@@ -126,7 +126,6 @@ class QASystem(object):
         :param args: pass in more arguments as needed
         """
         # ==== constants ====
-        self.lr = 0.001
 
         # ==== set up placeholder tokens ========
         self.FLAGS = FLAGS
@@ -196,7 +195,7 @@ class QASystem(object):
             self.loss = loss_s + loss_e
 
     def setup_training_op(self):
-        optimizer = get_optimizer(self.FLAGS.optimizer)(self.lr)
+        optimizer = get_optimizer(self.FLAGS.optimizer)(self.FLAGS.learning_rate)
         gradients, variables = map(list, zip(*optimizer.compute_gradients(self.loss)))
         self.grad_norm = tf.global_norm(gradients)
         grads_and_vars = zip(gradients, variables)
