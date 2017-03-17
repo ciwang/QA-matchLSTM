@@ -117,59 +117,43 @@ class Decoder(object):
                               decided by how you choose to implement the encoder
         :return:
         """
-        # given: h_q, h_p (hidden representations of question and paragraph)
+        # given: h_r 
         # TODO: CUT DOWN TO BATCH_SIZE
         # each 2-d TF variable
-        self.boundary_cell = BoundaryCell(self.size, inputs, state_is_tuple=False)
-        #tf.expand_dims(h_q, axis=2)
-        #tf.expand_dims(h_p, axis=2)
-        #print(h_q.get_shape())
-        #print(h_p.get_shape())
-        with vs.variable_scope("start"):
-            # start index of answer
-            output_s, _ = tf.nn.dynamic_rnn(self.boundary_cell, inputs, dtype=tf.float64)
-        with vs.variable_scope("end"):
-            # end index of answer
-            output_e, _ = tf.nn.dynamic_rnn(self.boundary_cell, inputs, dtype=tf.float64)
+        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
+        self.size_p = inputs.get_shape().as_list()[1]
 
-        # linear function:
-        # h_q W + b + h_p W + b
-        return (output_s[:, -1, :], output_e[:, -1, :])
-
-class BoundaryCell(tf.contrib.rnn.BasicLSTMCell):
-    def __init__(self, num_units, input_r, state_is_tuple, scope=None):
-        self.H_r = input_r
-        self.size_p = self.H_r.get_shape().as_list()[1]
-        super(BoundaryCell, self).__init__(num_units, state_is_tuple=state_is_tuple)
-
-    def __call__(self, inputs, state, scope=None):
-        # Params:
-        # inputs - h_p_t
-        # state - h_r_{t-1}
-        with tf.variable_scope("boundary"):
-            V = tf.get_variable("V", shape=(2 * self._num_units, self._num_units),
+        with vs.variable_scope("boundary"):
+            V = tf.get_variable("V", shape=(2 * self.size, self.size),
                         initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            W_a = tf.get_variable("W_a", shape=(2 * self._num_units, self._num_units),
+            W_a = tf.get_variable("W_a", shape=(self.size, self.size),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            b_a = tf.get_variable("b_a", shape=(1, self._num_units),
+            b_a = tf.get_variable("b_a", shape=(1, self.size),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            v = tf.get_variable("v", shape=(self._num_units, 1),
+            v = tf.get_variable("v", shape=(self.size, 1),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
             c = tf.get_variable("c", shape=(),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            H_r = tf.reshape(self.H_r, [-1, 2 * self._num_units])
-            H_rV = tf.reshape(tf.matmul(H_r, V), [-1, self.size_p, self._num_units])
-            W_ah_a = tf.matmul(state, W_a) + b_a
-            F_k = tf.reshape(tf.tanh(H_rV + tf.expand_dims(W_ah_a, axis=1)), [-1, self._num_units])
-            # reshaping F_kv might be wrong??
+            # calculations for start prediction
+            H_r = tf.reshape(inputs, [-1, 2 * self.size])
+            H_rV = tf.reshape(tf.matmul(H_r, V), [-1, self.size_p, self.size])
+            # TODO: check that first hidden state is 0?
+            # W_ah_a = tf.expand_dims(tf.matmul(h_a, W_a) + b_a, axis=1)
+            W_ah_a = tf.expand_dims(b_a, axis=1)
+            F_k = tf.reshape(tf.tanh(H_rV + W_ah_a), [-1, self.size])
             F_kv = tf.reshape(tf.matmul(F_k, v), [-1, self.size_p])
-            b_k = tf.nn.softmax(F_kv + c) # can expand dim of c if needed
-            b_h = tf.expand_dims(b_k, axis=1)
-            z = tf.reshape(tf.matmul(b_h, self.H_r), [-1, 2 * self._num_units])
-            # H_qalpha = tf.reshape(tf.matmul(alpha, self.H_q), [-1, self._num_units])
-            # z = tf.concat((inputs, H_qalpha), axis=1)
-        output, new_state = super(BoundaryCell, self).__call__(z, state, scope)
-        return output, new_state
+            b_s = F_kv + c # can expand dim of c if needed
+            b_h = tf.expand_dims(tf.nn.softmax(b_s), axis=1)
+            z = tf.reshape(tf.matmul(b_h, inputs), [-1, 2 * self.size])
+            # get hidden state for start
+            h_s, _ = tf.nn.dynamic_rnn(self.cell, tf.expand_dims(z, axis=1), dtype=tf.float64)
+            # calculations for end prediction
+            W_eh_e = tf.matmul(tf.reshape(h_s, [-1, self.size]), W_a) + b_a
+            F_k_e = tf.reshape(tf.tanh(H_rV + tf.expand_dims(W_eh_e, axis=1)), [-1, self.size])
+            F_kv_e = tf.reshape(tf.matmul(F_k_e, v), [-1, self.size_p])
+            b_e = F_kv_e + c # not softmaxed so we can use softmax_cross_entropy in calculating loss
+
+        return (b_s, b_e)
 
 
 class QASystem(object):
@@ -202,23 +186,6 @@ class QASystem(object):
 
         # ==== set up training/updating procedure ====
         pass
-
-
-    def calculate_attention(self, output_q, output_p):
-        max_t = output_p.get_shape()[1]
-        W = tf.get_variable("W", shape=(2*self.FLAGS.output_size, self.FLAGS.output_size),
-            initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-        attention_p = []
-        h_qs = [output_q[:, i, :] for i in range(max_t)]
-        for s in range(max_t):
-            if s % 10 == 0: print(s)
-            h_s = output_p[:, s, :]
-            weights = tf.reduce_sum(tf.multiply(h_qs, h_s), axis=[1,2])
-            c_s = tf.reduce_sum(tf.multiply(weights, h_qs), axis=0) #batch_size x output_size
-            h_att = tf.matmul(tf.concat((c_s, h_s), 1), W)
-            attention_p.append(h_att)
-
-        return tf.transpose(tf.stack(attention_p), perm=[1,0,2])
 
     def setup_system(self):
         """
@@ -393,8 +360,8 @@ class QASystem(object):
         :param log: whether we print to std out stream
         :return:
         """
-        f1 = 0.
-        em = 0.
+        f1 = 0.0
+        em = 0.0
 
         count = 0
         # a is list of tuples
@@ -410,6 +377,8 @@ class QASystem(object):
             for i in range(len(q)):
                 answer = ' '.join(map(lambda x: rev_vocab[x], p[i][a_s[i]:a_e[i] + 1]))
                 true_answer = ' '.join(map(lambda x: rev_vocab[x], p[i][a[i][0]:a[i][1] + 1]))
+                print(answer)
+                print(true_answer)
 
                 f1 += f1_score(answer, true_answer)
                 em += exact_match_score(answer, true_answer)
