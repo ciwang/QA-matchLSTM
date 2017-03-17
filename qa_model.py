@@ -343,7 +343,7 @@ class QASystem(object):
             p_lengths = [len(x) for x in p]
             out = self.test(sess, q, p, a, q_lengths, p_lengths)
             valid_cost += sum(out[0])
-            num_seen += len(out)
+            num_seen += len(out[0])
 
         average_valid_cost = float(valid_cost) / float(num_seen)
 
