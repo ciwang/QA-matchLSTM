@@ -1,0 +1,318 @@
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcublas.so.8.0 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcudnn.so.5 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcufft.so.8.0 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcuda.so.1 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcurand.so.8.0 locally
+WARNING:tensorflow:<tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl.BasicLSTMCell object at 0x7ff210105090>: Using a concatenated state is slower and will soon be deprecated.  Use state_is_tuple=True.
+WARNING:tensorflow:<tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl.BasicLSTMCell object at 0x7ff210105090>: Using a concatenated state is slower and will soon be deprecated.  Use state_is_tuple=True.
+WARNING:tensorflow:<tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl.BasicLSTMCell object at 0x7ff1da9b4e90>: Using a concatenated state is slower and will soon be deprecated.  Use state_is_tuple=True.
+WARNING:tensorflow:<tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl.BasicLSTMCell object at 0x7ff1da9b4e90>: Using a concatenated state is slower and will soon be deprecated.  Use state_is_tuple=True.
+WARNING:tensorflow:<tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl.BasicLSTMCell object at 0x7ff1d62a0410>: Using a concatenated state is slower and will soon be deprecated.  Use state_is_tuple=True.
+WARNING:tensorflow:<tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl.BasicLSTMCell object at 0x7ff1d62a0410>: Using a concatenated state is slower and will soon be deprecated.  Use state_is_tuple=True.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE3 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use AVX instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use AVX2 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use FMA instructions, but these are available on your machine and could speed up CPU computations.
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:885] Found device 0 with properties: 
+name: Tesla M60
+major: 5 minor: 2 memoryClockRate (GHz) 1.1775
+pciBusID 9596:00:00.0
+Total memory: 7.93GiB
+Free memory: 7.86GiB
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:906] DMA: 0 
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:916] 0:   Y 
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:975] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla M60, pci bus id: 9596:00:00.0)
+INFO:root:Created model with fresh parameters.
+INFO:root:Num params: 1363200
+INFO:root:Number of params: 1363200 (retrieval took 0.439297 secs)
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 28134 get requests, put_count=27959 evicted_count=1000 eviction_rate=0.0357667 and unsatisfied allocation rate=0.0453188
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 100 to 110
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 136091 get requests, put_count=136096 evicted_count=1000 eviction_rate=0.00734775 and unsatisfied allocation rate=0.00748029
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 256 to 281
+INFO:root:Validate cost: 48050.5308984
+INFO:root:F1: 0.00140643894975, EM: 0.0, for 100 samples
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 17017 get requests, put_count=26044 evicted_count=9000 eviction_rate=0.345569 and unsatisfied allocation rate=5.87648e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 9248 get requests, put_count=13278 evicted_count=4000 eviction_rate=0.30125 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 23900 get requests, put_count=37928 evicted_count=14000 eviction_rate=0.36912 and unsatisfied allocation rate=8.3682e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 17160 get requests, put_count=26190 evicted_count=9000 eviction_rate=0.343643 and unsatisfied allocation rate=0.000174825
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 6992 get requests, put_count=10029 evicted_count=3000 eviction_rate=0.299133 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 22490 get requests, put_count=35525 evicted_count=13000 eviction_rate=0.365939 and unsatisfied allocation rate=8.89284e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 14964 get requests, put_count=23003 evicted_count=8000 eviction_rate=0.347781 and unsatisfied allocation rate=6.68271e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7026 get requests, put_count=10070 evicted_count=3000 eviction_rate=0.297915 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 22863 get requests, put_count=35904 evicted_count=13000 eviction_rate=0.362077 and unsatisfied allocation rate=0.000131216
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 15057 get requests, put_count=23105 evicted_count=8000 eviction_rate=0.346245 and unsatisfied allocation rate=6.64143e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7036 get requests, put_count=10090 evicted_count=3000 eviction_rate=0.297324 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 22885 get requests, put_count=35937 evicted_count=13000 eviction_rate=0.361744 and unsatisfied allocation rate=8.73935e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 15076 get requests, put_count=23134 evicted_count=8000 eviction_rate=0.345811 and unsatisfied allocation rate=6.63306e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7072 get requests, put_count=10137 evicted_count=3000 eviction_rate=0.295946 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 22797 get requests, put_count=35860 evicted_count=13000 eviction_rate=0.362521 and unsatisfied allocation rate=8.77308e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 14989 get requests, put_count=23060 evicted_count=8000 eviction_rate=0.346921 and unsatisfied allocation rate=6.67156e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7084 get requests, put_count=10163 evicted_count=3000 eviction_rate=0.295188 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 21910 get requests, put_count=34987 evicted_count=13000 eviction_rate=0.371567 and unsatisfied allocation rate=9.12825e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 17148 get requests, put_count=26234 evicted_count=9000 eviction_rate=0.343066 and unsatisfied allocation rate=5.83158e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 9182 get requests, put_count=13277 evicted_count=4000 eviction_rate=0.301273 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 22438 get requests, put_count=36531 evicted_count=14000 eviction_rate=0.383236 and unsatisfied allocation rate=8.91345e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 16882 get requests, put_count=25986 evicted_count=9000 eviction_rate=0.34634 and unsatisfied allocation rate=5.92347e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 8944 get requests, put_count=14058 evicted_count=5000 eviction_rate=0.355669 and unsatisfied allocation rate=0.000111807
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2578 get requests, put_count=3705 evicted_count=1000 eviction_rate=0.269906 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 20310 get requests, put_count=31436 evicted_count=11000 eviction_rate=0.349917 and unsatisfied allocation rate=4.92368e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 10798 get requests, put_count=16937 evicted_count=6000 eviction_rate=0.354254 and unsatisfied allocation rate=9.26097e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 4958 get requests, put_count=7112 evicted_count=2000 eviction_rate=0.281215 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 19868 get requests, put_count=32022 evicted_count=12000 eviction_rate=0.374742 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 17102 get requests, put_count=26271 evicted_count=9000 eviction_rate=0.342583 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 8978 get requests, put_count=14164 evicted_count=5000 eviction_rate=0.353008 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2760 get requests, put_count=3964 evicted_count=1000 eviction_rate=0.25227 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 18627 get requests, put_count=29831 evicted_count=11000 eviction_rate=0.368744 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 14911 get requests, put_count=23136 evicted_count=8000 eviction_rate=0.345781 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 8917 get requests, put_count=14164 evicted_count=5000 eviction_rate=0.353008 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5124 get requests, put_count=7396 evicted_count=2000 eviction_rate=0.270416 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 18388 get requests, put_count=30660 evicted_count=12000 eviction_rate=0.391389 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 14884 get requests, put_count=24183 evicted_count=9000 eviction_rate=0.372162 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 12786 get requests, put_count=20115 evicted_count=7000 eviction_rate=0.347999 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 8724 get requests, put_count=14086 evicted_count=5000 eviction_rate=0.354962 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 6876 get requests, put_count=11274 evicted_count=4000 eviction_rate=0.354799 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2558 get requests, put_count=4996 evicted_count=2000 eviction_rate=0.40032 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2768 get requests, put_count=5250 evicted_count=2000 eviction_rate=0.380952 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 1922 get requests, put_count=3452 evicted_count=1000 eviction_rate=0.289687 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3606 get requests, put_count=6189 evicted_count=2000 eviction_rate=0.323154 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5280 get requests, put_count=7921 evicted_count=2000 eviction_rate=0.252493 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 9438 get requests, put_count=14143 evicted_count=4000 eviction_rate=0.282825 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 9990 get requests, put_count=16766 evicted_count=6000 eviction_rate=0.357867 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5649 get requests, put_count=9588 evicted_count=3000 eviction_rate=0.312891 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 50880 get requests, put_count=51903 evicted_count=3000 eviction_rate=0.0578001 and unsatisfied allocation rate=0.0611832
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 12502 to 13752
+INFO:root:Num batches processed = 100 | Train Epoch ETA = 3404.261577
+INFO:root:Num batches processed = 200 | Train Epoch ETA = 3188.939200
+INFO:root:Num batches processed = 300 | Train Epoch ETA = 2952.012666
+INFO:root:Num batches processed = 400 | Train Epoch ETA = 2826.850746
+INFO:root:Num batches processed = 500 | Train Epoch ETA = 1825.187491
+INFO:root:Num batches processed = 600 | Train Epoch ETA = 2551.463307
+INFO:root:Num batches processed = 700 | Train Epoch ETA = 2347.622065
+INFO:root:Num batches processed = 800 | Train Epoch ETA = 2120.710050
+INFO:root:Num batches processed = 900 | Train Epoch ETA = 1944.861634
+INFO:root:Num batches processed = 1000 | Train Epoch ETA = 1806.775951
+INFO:root:Num batches processed = 1100 | Train Epoch ETA = 1559.718382
+INFO:root:Num batches processed = 1200 | Train Epoch ETA = 1390.016984
+INFO:root:Num batches processed = 1300 | Train Epoch ETA = 1213.338539
+INFO:root:Num batches processed = 1400 | Train Epoch ETA = 1048.378397
+INFO:root:Num batches processed = 1500 | Train Epoch ETA = 940.394008
+INFO:root:Num batches processed = 1600 | Train Epoch ETA = 713.485618
+INFO:root:Num batches processed = 1700 | Train Epoch ETA = 562.806239
+INFO:root:Num batches processed = 1800 | Train Epoch ETA = 348.669278
+INFO:root:Num batches processed = 1900 | Train Epoch ETA = 175.786861
+INFO:root:Num batches processed = 2000 | Train Epoch ETA = 1.788233
+INFO:root:Validate cost: 43366.1470321
+INFO:root:F1: 0.0942910490392, EM: 0.0, for 100 samples
+INFO:root:Num batches processed = 2100 | Train Epoch ETA = -177.875283
+INFO:root:Num batches processed = 2200 | Train Epoch ETA = -342.779320
+INFO:root:Num batches processed = 2300 | Train Epoch ETA = -533.710178
+INFO:root:Num batches processed = 2400 | Train Epoch ETA = -718.798913
+INFO:root:Num batches processed = 2500 | Train Epoch ETA = -870.717110
+INFO:root:Num batches processed = 2600 | Train Epoch ETA = -1077.836941
+INFO:root:Num batches processed = 2700 | Train Epoch ETA = -1231.149427
+INFO:root:Num batches processed = 2800 | Train Epoch ETA = -1405.857285
+INFO:root:Num batches processed = 2900 | Train Epoch ETA = -1689.745011
+INFO:root:Num batches processed = 3000 | Train Epoch ETA = -1808.728468
+INFO:root:Num batches processed = 3100 | Train Epoch ETA = -1936.718456
+INFO:root:Num batches processed = 3200 | Train Epoch ETA = -2145.688539
+INFO:root:Num batches processed = 3300 | Train Epoch ETA = -2375.795737
+INFO:root:Num batches processed = 3400 | Train Epoch ETA = -2532.655886
+INFO:root:Num batches processed = 3500 | Train Epoch ETA = -2645.630085
+INFO:root:Num batches processed = 3600 | Train Epoch ETA = -2795.719005
+INFO:root:Num batches processed = 3700 | Train Epoch ETA = -2965.027015
+INFO:root:Num batches processed = 3800 | Train Epoch ETA = -3151.225812
+INFO:root:Num batches processed = 3900 | Train Epoch ETA = -3414.552047
+INFO:root:Num batches processed = 4000 | Train Epoch ETA = -3638.028308
+INFO:root:Validate cost: 43325.6907446
+INFO:root:F1: 0.10293747184, EM: 0.0, for 100 samples
+INFO:root:Num batches processed = 4100 | Train Epoch ETA = -3865.075387
+INFO:root:Num batches processed = 4200 | Train Epoch ETA = -3748.133547
+INFO:root:Num batches processed = 4300 | Train Epoch ETA = -4159.771323
+INFO:root:Num batches processed = 4400 | Train Epoch ETA = -4181.310650
+INFO:root:Num batches processed = 4500 | Train Epoch ETA = -4662.619065
+INFO:root:Num batches processed = 4600 | Train Epoch ETA = -4525.462375
+INFO:root:Num batches processed = 4700 | Train Epoch ETA = -5038.997886
+INFO:root:Num batches processed = 4800 | Train Epoch ETA = -4928.260659
+INFO:root:Num batches processed = 4900 | Train Epoch ETA = -5186.328379
+INFO:root:Num batches processed = 5000 | Train Epoch ETA = -5277.265403
+INFO:root:Num batches processed = 5100 | Train Epoch ETA = -5964.406716
+INFO:root:Num batches processed = 5200 | Train Epoch ETA = -5629.804467
+INFO:root:Num batches processed = 5300 | Train Epoch ETA = -5602.873011
+INFO:root:Num batches processed = 5400 | Train Epoch ETA = -5772.984038
+INFO:root:Num batches processed = 5500 | Train Epoch ETA = -6401.252680
+INFO:root:Num batches processed = 5600 | Train Epoch ETA = -6707.293812
+INFO:root:Num batches processed = 5700 | Train Epoch ETA = -6735.643015
+INFO:root:Num batches processed = 5800 | Train Epoch ETA = -6761.866648
+INFO:root:Num batches processed = 5900 | Train Epoch ETA = -7088.069961
+INFO:root:Num batches processed = 6000 | Train Epoch ETA = -6683.544646
+INFO:root:Validate cost: 43309.2550905
+INFO:root:F1: 0.0957468325007, EM: 0.0, for 100 samples
+INFO:root:Num batches processed = 6100 | Train Epoch ETA = -7689.482315
+INFO:root:Num batches processed = 6200 | Train Epoch ETA = -7891.860954
+INFO:root:Num batches processed = 6300 | Train Epoch ETA = -8347.656235
+INFO:root:Num batches processed = 6400 | Train Epoch ETA = -8354.285922
+INFO:root:Num batches processed = 6500 | Train Epoch ETA = -8393.343472
+INFO:root:Num batches processed = 6600 | Train Epoch ETA = -8071.267456
+INFO:root:Num batches processed = 6700 | Train Epoch ETA = -8295.901089
+INFO:root:Num batches processed = 6800 | Train Epoch ETA = -8591.252156
+INFO:root:Num batches processed = 6900 | Train Epoch ETA = -8749.075612
+INFO:root:Num batches processed = 7000 | Train Epoch ETA = -8907.254114
+INFO:root:Num batches processed = 7100 | Train Epoch ETA = -9367.072771
+INFO:root:Num batches processed = 7200 | Train Epoch ETA = -9343.741779
+INFO:root:Num batches processed = 7300 | Train Epoch ETA = -9397.087776
+INFO:root:Num batches processed = 7400 | Train Epoch ETA = -9431.200746
+INFO:root:Num batches processed = 7500 | Train Epoch ETA = -10063.031919
+INFO:root:Num batches processed = 7600 | Train Epoch ETA = -9772.215336
+INFO:root:Num batches processed = 7700 | Train Epoch ETA = -10011.279983
+INFO:root:Num batches processed = 7800 | Train Epoch ETA = -10122.189574
+INFO:root:Num batches processed = 7900 | Train Epoch ETA = -10351.949635
+INFO:root:Num batches processed = 8000 | Train Epoch ETA = -11698.811191
+INFO:root:Validate cost: 43411.1840736
+INFO:root:F1: 0.0738608807293, EM: 0.0, for 100 samples
+INFO:root:Num batches processed = 8100 | Train Epoch ETA = -10533.880356
+INFO:root:Num batches processed = 8200 | Train Epoch ETA = -11109.198048
+INFO:root:Num batches processed = 8300 | Train Epoch ETA = -11595.704100
+INFO:root:Num batches processed = 8400 | Train Epoch ETA = -11781.563384
+INFO:root:Num batches processed = 8500 | Train Epoch ETA = -11636.121229
+INFO:root:Num batches processed = 8600 | Train Epoch ETA = -11759.379095
+INFO:root:Num batches processed = 8700 | Train Epoch ETA = -11708.318094
+INFO:root:Num batches processed = 8800 | Train Epoch ETA = -12588.619442
+INFO:root:Num batches processed = 8900 | Train Epoch ETA = -12188.815500
+INFO:root:Num batches processed = 9000 | Train Epoch ETA = -12569.272897
+INFO:root:Num batches processed = 9100 | Train Epoch ETA = -12502.438565
+INFO:root:Num batches processed = 9200 | Train Epoch ETA = -12402.681043
+INFO:root:Num batches processed = 9300 | Train Epoch ETA = -13446.933327
+INFO:root:Num batches processed = 9400 | Train Epoch ETA = -13900.531422
+INFO:root:Num batches processed = 9500 | Train Epoch ETA = -13496.694230
+INFO:root:Num batches processed = 9600 | Train Epoch ETA = -14139.915039
+INFO:root:Num batches processed = 9700 | Train Epoch ETA = -13014.142748
+INFO:root:Num batches processed = 9800 | Train Epoch ETA = -14114.075386
+INFO:root:Num batches processed = 9900 | Train Epoch ETA = -14242.441054
+INFO:root:Num batches processed = 10000 | Train Epoch ETA = -15277.665401
+INFO:root:Validate cost: 43346.8590992
+INFO:root:F1: 0.0618816186188, EM: 0.0, for 100 samples
+INFO:root:Num batches processed = 10100 | Train Epoch ETA = -14762.387339
+INFO:root:Num batches processed = 10200 | Train Epoch ETA = -14947.605457
+INFO:root:Num batches processed = 10300 | Train Epoch ETA = -15117.766738
+INFO:root:Num batches processed = 10400 | Train Epoch ETA = -15015.025944
+INFO:root:Num batches processed = 10500 | Train Epoch ETA = -15424.027957
+INFO:root:Num batches processed = 10600 | Train Epoch ETA = -14816.007721
+INFO:root:Num batches processed = 10700 | Train Epoch ETA = -15451.529312
+INFO:root:Num batches processed = 10800 | Train Epoch ETA = -16836.763348
+INFO:root:Num batches processed = 10900 | Train Epoch ETA = -16249.679864
+INFO:root:Num batches processed = 11000 | Train Epoch ETA = -16325.500231
+INFO:root:Num batches processed = 11100 | Train Epoch ETA = -15622.638139
+INFO:root:Num batches processed = 11200 | Train Epoch ETA = -16897.983009
+INFO:root:Num batches processed = 11300 | Train Epoch ETA = -17819.042382
+INFO:root:Num batches processed = 11400 | Train Epoch ETA = -17188.834830
+INFO:root:Num batches processed = 11500 | Train Epoch ETA = -17524.332665
+INFO:root:Num batches processed = 11600 | Train Epoch ETA = -16420.517592
+INFO:root:Num batches processed = 11700 | Train Epoch ETA = -16461.492557
+INFO:root:Num batches processed = 11800 | Train Epoch ETA = -18607.625128
+INFO:root:Num batches processed = 11900 | Train Epoch ETA = -18681.608729
+INFO:root:Num batches processed = 12000 | Train Epoch ETA = -19315.027685
+INFO:root:Validate cost: 43367.7928946
+INFO:root:F1: 0.0808226943345, EM: 0.0, for 100 samples
+INFO:root:Num batches processed = 12100 | Train Epoch ETA = -17524.330644
+INFO:root:Num batches processed = 12200 | Train Epoch ETA = -19118.055049
+INFO:root:Num batches processed = 12300 | Train Epoch ETA = -18676.206910
+INFO:root:Num batches processed = 12400 | Train Epoch ETA = -18230.039774
+INFO:root:Num batches processed = 12500 | Train Epoch ETA = -19137.849215
+INFO:root:Num batches processed = 12600 | Train Epoch ETA = -17916.538275
+INFO:root:Num batches processed = 12700 | Train Epoch ETA = -17991.158812
+INFO:root:Num batches processed = 12800 | Train Epoch ETA = -19891.294640
+INFO:root:Num batches processed = 12900 | Train Epoch ETA = -20398.078925
+INFO:root:Num batches processed = 13000 | Train Epoch ETA = -19553.800214
+INFO:root:Num batches processed = 13100 | Train Epoch ETA = -21626.977463
+INFO:root:Num batches processed = 13200 | Train Epoch ETA = -19250.465351
+INFO:root:Num batches processed = 13300 | Train Epoch ETA = -20723.609134
+INFO:root:Num batches processed = 13400 | Train Epoch ETA = -20599.815708
+INFO:root:Num batches processed = 13500 | Train Epoch ETA = -19747.221023
+INFO:root:Num batches processed = 13600 | Train Epoch ETA = -20991.905102
+INFO:root:Num batches processed = 13700 | Train Epoch ETA = -23508.775419
+INFO:root:Num batches processed = 13800 | Train Epoch ETA = -21133.943108
+INFO:root:Num batches processed = 13900 | Train Epoch ETA = -20426.395763
+INFO:root:Num batches processed = 14000 | Train Epoch ETA = -21869.619221
+INFO:root:Validate cost: 43355.6438328
+INFO:root:F1: 0.0911263546767, EM: 0.0, for 100 samples
+INFO:root:Num batches processed = 14100 | Train Epoch ETA = -20597.158379
+INFO:root:Num batches processed = 14200 | Train Epoch ETA = -22054.277758
+INFO:root:Num batches processed = 14300 | Train Epoch ETA = -22741.712818
+INFO:root:Num batches processed = 14400 | Train Epoch ETA = -22880.320573
+INFO:root:Num batches processed = 14500 | Train Epoch ETA = -22947.928151
+INFO:root:Num batches processed = 14600 | Train Epoch ETA = -23977.133042
+INFO:root:Num batches processed = 14700 | Train Epoch ETA = -21993.561299
+INFO:root:Num batches processed = 14800 | Train Epoch ETA = -23602.687756
+INFO:root:Num batches processed = 14900 | Train Epoch ETA = -22617.212289
+INFO:root:Num batches processed = 15000 | Train Epoch ETA = -23621.004191
+INFO:root:Num batches processed = 15100 | Train Epoch ETA = -23600.863313
+INFO:root:Num batches processed = 15200 | Train Epoch ETA = -23626.697264
+INFO:root:Num batches processed = 15300 | Train Epoch ETA = -24137.178444
+INFO:root:Num batches processed = 15400 | Train Epoch ETA = -23575.793229
+INFO:root:Num batches processed = 15500 | Train Epoch ETA = -23244.252974
+INFO:root:Num batches processed = 15600 | Train Epoch ETA = -25411.855099
+INFO:root:Num batches processed = 15700 | Train Epoch ETA = -25321.285446
+INFO:root:Num batches processed = 15800 | Train Epoch ETA = -25046.922877
+INFO:root:Num batches processed = 15900 | Train Epoch ETA = -25396.225399
+INFO:root:Num batches processed = 16000 | Train Epoch ETA = -25543.496322
+INFO:root:Validate cost: 43387.4495027
+INFO:root:F1: 0.000340963855422, EM: 0.0, for 100 samples
+INFO:root:Num batches processed = 16100 | Train Epoch ETA = -24245.413004
+INFO:root:Num batches processed = 16200 | Train Epoch ETA = -25090.512611
+INFO:root:Num batches processed = 16300 | Train Epoch ETA = -26833.687881
+INFO:root:Num batches processed = 16400 | Train Epoch ETA = -26442.234804
+INFO:root:Num batches processed = 16500 | Train Epoch ETA = -25614.847917
+INFO:root:Num batches processed = 16600 | Train Epoch ETA = -28552.081100
+INFO:root:Num batches processed = 16700 | Train Epoch ETA = -27737.820272
+INFO:root:Num batches processed = 16800 | Train Epoch ETA = -24902.142020
+INFO:root:Num batches processed = 16900 | Train Epoch ETA = -27331.904015
+INFO:root:Num batches processed = 17000 | Train Epoch ETA = -27340.086615
+INFO:root:Num batches processed = 17100 | Train Epoch ETA = -25630.253566
+INFO:root:Num batches processed = 17200 | Train Epoch ETA = -27758.878060
+INFO:root:Num batches processed = 17300 | Train Epoch ETA = -28763.617253
+INFO:root:Num batches processed = 17400 | Train Epoch ETA = -28695.590409
+INFO:root:Num batches processed = 17500 | Train Epoch ETA = -28519.910218
+INFO:root:Num batches processed = 17600 | Train Epoch ETA = -26716.825844
+INFO:root:Num batches processed = 17700 | Train Epoch ETA = -28807.616941
+INFO:root:Num batches processed = 17800 | Train Epoch ETA = -27371.467363
+INFO:root:Num batches processed = 17900 | Train Epoch ETA = -29519.467709
+INFO:root:Num batches processed = 18000 | Train Epoch ETA = -28355.813558
+INFO:root:Validate cost: 43355.9511359
+INFO:root:F1: 0.00116519979469, EM: 0.0, for 100 samples
+INFO:root:Num batches processed = 18100 | Train Epoch ETA = -31339.199409
+INFO:root:Num batches processed = 18200 | Train Epoch ETA = -27501.594970
+INFO:root:Num batches processed = 18300 | Train Epoch ETA = -30114.323575
+INFO:root:Num batches processed = 18400 | Train Epoch ETA = -27941.714254
+INFO:root:Num batches processed = 18500 | Train Epoch ETA = -31048.249852
+INFO:root:Num batches processed = 18600 | Train Epoch ETA = -28099.587364
+INFO:root:Num batches processed = 18700 | Train Epoch ETA = -31520.812508
+INFO:root:Num batches processed = 18800 | Train Epoch ETA = -31017.910285
+INFO:root:Num batches processed = 18900 | Train Epoch ETA = -33249.241327
+INFO:root:Num batches processed = 19000 | Train Epoch ETA = -30700.672142
+INFO:root:Num batches processed = 19100 | Train Epoch ETA = -32207.028143
+INFO:root:Num batches processed = 19200 | Train Epoch ETA = -31598.899557
+INFO:root:Num batches processed = 19300 | Train Epoch ETA = -30545.415230
+INFO:root:Num batches processed = 19400 | Train Epoch ETA = -32880.440629
+INFO:root:Num batches processed = 19500 | Train Epoch ETA = -33201.132317
+INFO:root:Num batches processed = 19600 | Train Epoch ETA = -29808.413666
+INFO:root:Num batches processed = 19700 | Train Epoch ETA = -33745.052625
+INFO:root:Num batches processed = 19800 | Train Epoch ETA = -29905.648180
+INFO:root:Num batches processed = 19900 | Train Epoch ETA = -33816.936831
+INFO:root:Num batches processed = 20000 | Train Epoch ETA = -34879.829874
+INFO:root:Validate cost: 43382.6973411
+INFO:root:F1: 0.0, EM: 0.0, for 100 samples
+{'__flags': {'embedding_size': 100, 'data_dir': 'data/squad', 'output_size': 300, 'vocab_path': 'data/squad/vocab.dat', 'learning_rate': 0.01, 'train_dir': 'train', 'max_gradient_norm': 10.0, 'batch_size': 40, 'keep': 0, 'epochs': 10, 'log_dir': 'log', 'print_every': 1, 'question_size': 70, 'load_train_dir': '', 'state_size': 100, 'optimizer': 'adam', 'dropout': 0.15, 'embed_path': 'data/squad/glove.trimmed.100.npz'}, '__parsed': True}
+bitch
+bitch
+Model saved in file: train/results/20170316_074027/model.weights/
+Model saved in file: train/results/20170316_084114/model.weights/
+Model saved in file: train/results/20170316_094208/model.weights/
+Model saved in file: train/results/20170316_104322/model.weights/
+Model saved in file: train/results/20170316_114450/model.weights/
+Model saved in file: train/results/20170316_124619/model.weights/
+Model saved in file: train/results/20170316_134802/model.weights/
+Model saved in file: train/results/20170316_144949/model.weights/
+Model saved in file: train/results/20170316_155135/model.weights/
+Model saved in file: train/results/20170316_165329/model.weights/

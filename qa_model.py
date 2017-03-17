@@ -33,7 +33,7 @@ class Encoder(object):
         self.vocab_dim = vocab_dim # wat is this
         # pseudocode
 
-    def encode(self, inputs, masks, encoder_state_input, scope="", reuse=False): #wat is masks
+    def encode_preprocess(self, inputs, masks, scope="", reuse=False): #wat is masks
         """
         In a generalized encode function, you pass in your inputs,
         masks, and an initial
@@ -51,38 +51,58 @@ class Encoder(object):
         # symbolic function takes in Tensorflow object, returns tensorflow object
         # pseudocode
         self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
-        with vs.variable_scope(scope, reuse=reuse):
-            (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, \
-                initial_state_fw=encoder_state_input, initial_state_bw=encoder_state_input, dtype=tf.float64)
+        with vs.variable_scope(scope):
+            #(out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, dtype=tf.float64)
+            out, _ = tf.nn.dynamic_rnn(self.cell, inputs, sequence_length=masks, dtype=tf.float64)
 
+        return out
+
+    def encode_match(self, input_q, input_p, masks_p, scope="", reuse=False):
+        self.match_cell = MatchLSTMCell(self.size, input_q, state_is_tuple=False)
+        with vs.variable_scope(scope):
+            (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.match_cell, self.match_cell, input_p, \
+                sequence_length=masks_p, dtype=tf.float64)
         return tf.concat((out_fw, out_bw), 2)
 
-#     def encode_w_attn(self, inputs, masks, encoder_state_input, scope="", reuse=False):
-#         self.attn_cell = GRUAttnCell(self.size, encoder_state_input)
-#         with vs.variable_scope(scope, reuse):
-#             (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.attn_cell, self.attn_cell, inputs, sequence_length=masks, \
-#                 dtype=tf.float64)
-#         return tf.concat((out_fw, out_bw), 2)
+class MatchLSTMCell(tf.contrib.rnn.BasicLSTMCell):
+    def __init__(self, num_units, input_q, state_is_tuple, scope=None):
+        self.H_q = input_q
+        self.size_q = self.H_q.get_shape().as_list()[1]
+        super(MatchLSTMCell, self).__init__(num_units, state_is_tuple=state_is_tuple)
 
-# class GRUAttnCell(tf.contrib.rnn.GRUCell):
-#     def __init__(self, num_units, encoder_output, scope=None):
-#         self.hs = encoder_output
-#         super(GRUAttnCell, self).__init__(num_units)
+    def __call__(self, inputs, state, scope=None):
+        # Params:
+        # inputs - h_p_t
+        # state - h_r_{t-1}
+        with tf.variable_scope("matchlstm"):
+            W_q = tf.get_variable("W_q", shape=(self._num_units, self._num_units),
+                        initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            W_p = tf.get_variable("W_p", shape=(self._num_units, self._num_units),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            W_r = tf.get_variable("W_r", shape=(2*self._num_units, self._num_units),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            b_p = tf.get_variable("b_p", shape=(self._num_units,),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            w = tf.get_variable("w", shape=(self._num_units, 1),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            b = tf.get_variable("b", shape=(),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            H_q = tf.reshape(self.H_q, [-1, self._num_units])
+            H_qW_q = tf.reshape(tf.matmul(H_q, W_q), [-1, self.size_q, self._num_units])
+            tempsum = tf.matmul(inputs, W_p) + tf.matmul(state, W_r) + b_p
+            G = tf.tanh(H_qW_q + tf.expand_dims(tempsum, axis=1)) # doing broadcasting, but can tf.expand_dims(tempsum, axis=1)), tf.tile([1, size_q, 1])
+            Gw = tf.reshape(tf.matmul(tf.reshape(G, [-1, self._num_units]), w), [-1, self.size_q])
+            alpha = tf.nn.softmax(Gw + b)
+            alpha = tf.expand_dims(alpha, axis=1)
+            H_qalpha = tf.reshape(tf.matmul(alpha, self.H_q), [-1, self._num_units])
+            z = tf.concat((inputs, H_qalpha), axis=1)
+        output, new_state = super(MatchLSTMCell, self).__call__(z, state, scope)
+        return output, new_state
 
-#     def __call__(self, inputs, state, scope=None):
-#         gru_out, gru_state = super(GRUAttnCell, self).__call__(inputs, state, scope)
-#         with vs.variable_scope(scope or type(self).__name__):
-#             with vs.variable_scope("Attn"):
-#                 ht = tf.contrib.layers.fully_connected(inputs=gru_out, num_outputs=self._num_units)
-#                 ht = tf.expand_dims(ht, axis=1)
-#             scores = tf.reduce_sum(self.hs * ht, reduction_indices=2, keep_dims=True)
-#             context = tf.reduce_sum(self.hs * scores, reduction_indices=1)
-#             with vs.variable_scope("AttnConcat"):
-#                 out = tf.nn.relu(tf.contrib.layers.fully_connected([context, gru_out], self._num_units))
-#         return (out, out)
 
 class Decoder(object):
-    def __init__(self, output_size):
+    def __init__(self, size, output_size):
+        self.size = size
         self.output_size = output_size
 
     def decode(self, inputs):
@@ -97,24 +117,44 @@ class Decoder(object):
                               decided by how you choose to implement the encoder
         :return:
         """
-        # given: h_q, h_p (hidden representations of question and paragraph)
+        # given: h_r 
         # TODO: CUT DOWN TO BATCH_SIZE
         # each 2-d TF variable
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.output_size, state_is_tuple=False)
-        #tf.expand_dims(h_q, axis=2)
-        #tf.expand_dims(h_p, axis=2)
-        #print(h_q.get_shape())
-        #print(h_p.get_shape())
-        with vs.variable_scope("start"):
-            # start index of answer
-            output_s, _ = tf.nn.dynamic_rnn(self.cell, inputs, dtype=tf.float64)
-        with vs.variable_scope("end"):
-            # end index of answer
-            output_e, _ = tf.nn.dynamic_rnn(self.cell, inputs, dtype=tf.float64)
+        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
+        self.size_p = inputs.get_shape().as_list()[1]
 
-        # linear function:
-        # h_q W + b + h_p W + b
-        return (output_s[:, -1, :], output_e[:, -1, :])
+        with vs.variable_scope("boundary"):
+            V = tf.get_variable("V", shape=(2 * self.size, self.size),
+                        initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            W_a = tf.get_variable("W_a", shape=(self.size, self.size),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            b_a = tf.get_variable("b_a", shape=(1, self.size),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            v = tf.get_variable("v", shape=(self.size, 1),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            c = tf.get_variable("c", shape=(),
+                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            # calculations for start prediction
+            H_r = tf.reshape(inputs, [-1, 2 * self.size])
+            H_rV = tf.reshape(tf.matmul(H_r, V), [-1, self.size_p, self.size])
+            # TODO: check that first hidden state is 0?
+            # W_ah_a = tf.expand_dims(tf.matmul(h_a, W_a) + b_a, axis=1)
+            W_ah_a = tf.expand_dims(b_a, axis=1)
+            F_k = tf.reshape(tf.tanh(H_rV + W_ah_a), [-1, self.size])
+            F_kv = tf.reshape(tf.matmul(F_k, v), [-1, self.size_p])
+            b_s = F_kv + c # can expand dim of c if needed
+            b_h = tf.expand_dims(tf.nn.softmax(b_s), axis=1)
+            z = tf.reshape(tf.matmul(b_h, inputs), [-1, 2 * self.size])
+            # get hidden state for start
+            h_s, _ = tf.nn.dynamic_rnn(self.cell, tf.expand_dims(z, axis=1), dtype=tf.float64)
+            # calculations for end prediction
+            W_eh_e = tf.matmul(tf.reshape(h_s, [-1, self.size]), W_a) + b_a
+            F_k_e = tf.reshape(tf.tanh(H_rV + tf.expand_dims(W_eh_e, axis=1)), [-1, self.size])
+            F_kv_e = tf.reshape(tf.matmul(F_k_e, v), [-1, self.size_p])
+            b_e = F_kv_e + c # not softmaxed so we can use softmax_cross_entropy in calculating loss
+
+        return (b_s, b_e)
+
 
 class QASystem(object):
     def __init__(self, encoder, decoder, FLAGS, *args):
@@ -146,23 +186,6 @@ class QASystem(object):
         # ==== set up training/updating procedure ====
         pass
 
-
-    def calculate_attention(self, output_q, output_p):
-        max_t = output_p.get_shape()[1]
-        W = tf.get_variable("W", shape=(2*self.FLAGS.output_size, self.FLAGS.output_size),
-            initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-        attention_p = []
-        h_qs = [output_q[:, i, :] for i in range(max_t)]
-        for s in range(max_t):
-            if s % 10 == 0: print(s)
-            h_s = output_p[:, s, :]
-            weights = tf.reduce_sum(tf.multiply(h_qs, h_s), axis=[1,2])
-            c_s = tf.reduce_sum(tf.multiply(weights, h_qs), axis=0) #batch_size x output_size
-            h_att = tf.matmul(tf.concat((c_s, h_s), 1), W)
-            attention_p.append(h_att)
-
-        return tf.transpose(tf.stack(attention_p), perm=[1,0,2])
-
     def setup_system(self):
         """
         After your modularized implementation of encoder and decoder
@@ -171,17 +194,11 @@ class QASystem(object):
         :return:
         """
         encoder = Encoder(self.FLAGS.state_size, self.FLAGS.embedding_size)
-        output_q = encoder.encode(self.questions_var, self.q_masks_placeholder, None)
-        h_q = output_q[:, -1, :]
-        output_p = encoder.encode(self.paragraphs_var, self.p_masks_placeholder, h_q, reuse=True)
-        h_p = output_p[:, -1, :]
-        # attention_p = self.calculate_attention(output_q, output_p)
-        # output_attention_p = encoder.encode_w_attn(self.paragraphs_var, self.p_masks_placeholder, h_p)
-        # attention_p = output_attention_p[:, -1, :]
-        decoder = Decoder(self.FLAGS.output_size)
-        #self.a_s, self.a_e = decoder.decode(h_q, h_p)
-        #inputs = tf.concat((output_q, output_p), axis=2)
-        self.a_s, self.a_e = decoder.decode(output_p)
+        H_q = encoder.encode_preprocess(self.questions_var, self.q_masks_placeholder, scope="question")
+        H_p = encoder.encode_preprocess(self.paragraphs_var, self.p_masks_placeholder, scope="paragraph")
+        H_r = encoder.encode_match(H_q, H_p, self.p_masks_placeholder)
+        decoder = Decoder(self.FLAGS.state_size, self.FLAGS.output_size)
+        self.a_s, self.a_e = decoder.decode(H_r)
 
 
     def setup_loss(self):
@@ -348,8 +365,8 @@ class QASystem(object):
         :param log: whether we print to std out stream
         :return:
         """
-        f1 = 0.
-        em = 0.
+        f1 = 0.0
+        em = 0.0
 
         count = 0
         # a is list of tuples
@@ -365,6 +382,8 @@ class QASystem(object):
             for i in range(len(q)):
                 answer = ' '.join(map(lambda x: rev_vocab[x], p[i][a_s[i]:a_e[i] + 1]))
                 true_answer = ' '.join(map(lambda x: rev_vocab[x], p[i][a[i][0]:a[i][1] + 1]))
+                print(answer)
+                print(true_answer)
 
                 f1 += f1_score(answer, true_answer)
                 em += exact_match_score(answer, true_answer)
@@ -416,8 +435,8 @@ class QASystem(object):
         val_dataset = list(val_dataset)
 
         # print initial loss
-        val_loss = self.validate(session, val_dataset, log=True)
-        self.evaluate_answer(session, dataset, rev_vocab, log=True)
+        #val_loss = self.validate(session, val_dataset, log=True)
+        #self.evaluate_answer(session, dataset, rev_vocab, log=True)
 
         # split into train and test loops?
         num_processed = 0
