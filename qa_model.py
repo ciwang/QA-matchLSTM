@@ -152,8 +152,8 @@ class Decoder(object):
             F_k_e = tf.reshape(tf.tanh(H_rV + tf.expand_dims(W_eh_e, axis=1)), [-1, self.size])
             F_kv_e = tf.reshape(tf.matmul(F_k_e, v), [-1, self.size_p])
             b_e = F_kv_e + c # not softmaxed so we can use softmax_cross_entropy in calculating loss
-
-        return (b_s, b_e)
+        # b_s not softmaxed, a_s softmaxed
+        return (b_s, b_e, tf.nn.softmax(b_s), tf.nn.softmax(b_e))
 
 
 class QASystem(object):
@@ -198,7 +198,7 @@ class QASystem(object):
         H_p = encoder.encode_preprocess(self.paragraphs_var, self.p_masks_placeholder, scope="paragraph")
         H_r = encoder.encode_match(H_q, H_p, self.p_masks_placeholder)
         decoder = Decoder(self.FLAGS.state_size, self.FLAGS.output_size)
-        self.a_s, self.a_e = decoder.decode(H_r)
+        self.b_s, self.b_e, self.a_s, self.a_e = decoder.decode(H_r)
 
 
     def setup_loss(self):
@@ -207,8 +207,8 @@ class QASystem(object):
         :return:
         """
         with vs.variable_scope("loss"):
-            loss_s = tf.nn.softmax_cross_entropy_with_logits(labels=self.start_answer, logits=self.a_s)
-            loss_e = tf.nn.softmax_cross_entropy_with_logits(labels=self.end_answer, logits=self.a_e)
+            loss_s = tf.nn.softmax_cross_entropy_with_logits(labels=self.start_answer, logits=self.b_s)
+            loss_e = tf.nn.softmax_cross_entropy_with_logits(labels=self.end_answer, logits=self.b_e)
             self.loss = loss_s + loss_e
 
     def setup_training_op(self):
@@ -313,7 +313,7 @@ class QASystem(object):
 
     def answer(self, session, test_q, test_p, q_masks, p_masks):
 
-        yp, yp2 = self.decode(session, test_q, test_p, q_masks, p_masks)
+        _, _, yp, yp2 = self.decode(session, test_q, test_p, q_masks, p_masks)
 
         a_s = np.argmax(yp, axis=1)
         a_e = np.argmax(yp2, axis=1)
