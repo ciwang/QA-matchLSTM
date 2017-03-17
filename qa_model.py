@@ -336,8 +336,8 @@ class QASystem(object):
 
         for q, p, a in valid_dataset:
             # questions in valid_dataset may need to be clipped
-            q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - len(question)) for question in q]
-            p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
+            q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - min(len(question), self.FLAGS.question_size)) for question in q]
+            p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - min(len(paragraph), self.FLAGS.output_size)) for paragraph in p]
             q_lengths = [len(x) for x in q]
             p_lengths = [len(x) for x in p]
             out = self.test(sess, q, p, a, q_lengths, p_lengths)
@@ -350,7 +350,7 @@ class QASystem(object):
 
         return valid_cost
 
-    def evaluate_answer(self, session, dataset, rev_vocab, sample=100, log=False):
+    def evaluate_answer(self, session, dataset, dataset_name, rev_vocab, sample=100, log=False):
         """
         Evaluate the model's performance using the harmonic mean of F1 and Exact Match (EM)
         with the set of true answer labels
@@ -369,21 +369,21 @@ class QASystem(object):
         em = 0.0
 
         count = 0
+        random_indices = random.sample(xrange(len(dataset)), 100)
         # a is list of tuples
-        for q, p, a in dataset:
+        for index in random_indices:
+            q, p, a = dataset[index]
             if count >= sample: break
 
             q_lengths = [len(x) for x in q]
             p_lengths = [len(x) for x in p]
-            q = [question + [PAD_ID] * (self.FLAGS.question_size - len(question)) for question in q]
-            p = [paragraph + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
+            q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - min(len(question), self.FLAGS.question_size)) for question in q]
+            p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - min(len(paragraph), self.FLAGS.output_size)) for paragraph in p]
             a_s, a_e = self.answer(session, q, p, q_lengths, p_lengths)
 
             for i in range(len(q)):
                 answer = ' '.join(map(lambda x: rev_vocab[x], p[i][a_s[i]:a_e[i] + 1]))
                 true_answer = ' '.join(map(lambda x: rev_vocab[x], p[i][a[i][0]:a[i][1] + 1]))
-                print(answer)
-                print(true_answer)
 
                 f1 += f1_score(answer, true_answer)
                 em += exact_match_score(answer, true_answer)
@@ -393,7 +393,7 @@ class QASystem(object):
         em /= sample
 
         if log:
-            logging.info("F1: {}, EM: {}, for {} samples".format(f1, em, sample))
+            logging.info("{} - F1: {}, EM: {}, for {} samples".format(dataset_name, f1, em, sample))
 
     def train(self, session, dataset, val_dataset, train_dir, rev_vocab):
         """
@@ -435,8 +435,10 @@ class QASystem(object):
         val_dataset = list(val_dataset)
 
         # print initial loss
-        #val_loss = self.validate(session, val_dataset, log=True)
-        #self.evaluate_answer(session, dataset, rev_vocab, log=True)
+        logging.info("Evaluating initial")
+        val_loss = self.validate(session, val_dataset, log=True)
+        self.evaluate_answer(session, dataset, "Train", rev_vocab, log=True)
+        self.evaluate_answer(session, val_dataset, "Validation", rev_vocab, log=True)
 
         # split into train and test loops?
         num_processed = 0
@@ -444,15 +446,15 @@ class QASystem(object):
             random.shuffle(dataset)
             for q, p, a in dataset:
                 tic = time.time()
-                q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - len(question)) for question in q]
-                p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - len(paragraph)) for paragraph in p]
+                q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - min(len(question), self.FLAGS.question_size)) for question in q]
+                p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - min(len(paragraph), self.FLAGS.output_size)) for paragraph in p]
                 q_lengths = [len(x) for x in q]
                 p_lengths = [len(x) for x in p]
                 _, loss, grad_norm = self.optimize(session, q, p, a, q_lengths, p_lengths)
                 num_processed += 1
                 toc = time.time()
                 if (num_processed % 100 == 0):
-                    logging.info("Epoch = %d | Num batches processed = %d | Train epoch ETA = %f | Grad Norm = %f" % (e, num_processed, (len(dataset) - num_processed) * (toc - tic), grad_norm))
+                    logging.info("Epoch = %d | Num batches processed = %d | Train epoch ETA = %f | Grad norm = %f | Training loss = %f" % (e, num_processed, (len(dataset) - num_processed) * (toc - tic), grad_norm, np.mean(loss)))
                 
             # save the model
             num_processed = 0
@@ -463,6 +465,7 @@ class QASystem(object):
     		    os.makedirs(model_path)
             save_path = saver.save(session, model_path)
             logging.info("Model saved in file: %s" % save_path)
-            logging.inf("Evaluating epoch %d", e)
+            logging.info("Evaluating epoch %d", e)
             val_loss = self.validate(session, val_dataset, log=True)
-            self.evaluate_answer(session, dataset, rev_vocab, log=True)
+            self.evaluate_answer(session, dataset, "Train", rev_vocab, log=True)
+            self.evaluate_answer(session, val_dataset, "Validation", rev_vocab, log=True)
