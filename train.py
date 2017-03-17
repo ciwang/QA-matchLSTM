@@ -86,7 +86,6 @@ def get_normalized_train_dir(train_dir):
     return global_train_dir
 
 def load_dataset(f1, f2, f3, batch_size):
-    print("bitch")
     fd1, fd2, fd3 = open(f1), open(f2), open(f3)
 
     question_batch = []
