@@ -31,7 +31,6 @@ class Encoder(object):
     def __init__(self, size, vocab_dim):
         self.size = size
         self.vocab_dim = vocab_dim # wat is this
-        # pseudocode
 
     def encode_preprocess(self, inputs, masks, scope="", reuse=False): #wat is masks
         """
@@ -48,25 +47,13 @@ class Encoder(object):
                  It can be context-level representation, word-level representation,
                  or both.
         """
-        # symbolic function takes in Tensorflow object, returns tensorflow object
-        # pseudocode
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
+        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True)
         with vs.variable_scope(scope):
-            #(out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, dtype=tf.float64)
             (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, dtype=tf.float64)
 
         return tf.concat((out_fw, out_bw), 2)
 
-    def encode_match(self, input_q, input_p, masks_p, scope="", reuse=False):
-        self.match_cell = MatchLSTMCell(self.size, input_q, state_is_tuple=True)
-        with vs.variable_scope(scope):
-            (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.match_cell, self.match_cell, input_p, \
-                sequence_length=masks_p, dtype=tf.float64)
-        return tf.concat((out_fw, out_bw), 2)
-
     def encode_with_context(self, H_q, H_p):
-        # A = softmax(P Q^T)
-        # C_P = A Q
         context_len = H_p.get_shape().as_list()[1]
         with tf.variable_scope("context_vector"):
             W = tf.get_variable("W", shape=(4*self.size, self.size),
@@ -75,51 +62,11 @@ class Encoder(object):
                         initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
             A = tf.nn.softmax(tf.matmul(H_p, tf.transpose(H_q, perm=[0, 2, 1]))) # batch x p x q
             C_p = tf.matmul(A, H_q) # batch x p x 2hidden
-            
-            # P = concat(C_P, P) W + b
-            # tf.reshape(P, [-1, size])
-            # then normal mat_mul
-            # then shape the result back to [-1, context_len]
+
             H_p = tf.concat((C_p, H_p), 2) #batch x p x 4hidden
             H_pW = tf.reshape(tf.matmul(tf.reshape(H_p, [-1, 4*self.size]), W), [-1, context_len, self.size]) # batch x p x size
             H_p = H_pW + b
         return H_p
-
-class MatchLSTMCell(tf.contrib.rnn.BasicLSTMCell):
-    def __init__(self, num_units, input_q, state_is_tuple, scope=None):
-        self.H_q = input_q
-        self.size_q = self.H_q.get_shape().as_list()[1]
-        super(MatchLSTMCell, self).__init__(num_units, state_is_tuple=state_is_tuple)
-
-    def __call__(self, inputs, state, scope=None):
-        # Params:
-        # inputs - h_p_t
-        # state - h_r_{t-1}
-        with tf.variable_scope("matchlstm"):
-            W_q = tf.get_variable("W_q", shape=(self._num_units, self._num_units),
-                        initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            W_p = tf.get_variable("W_p", shape=(self._num_units, self._num_units),
-                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            W_r = tf.get_variable("W_r", shape=(self._num_units, self._num_units),
-                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            b_p = tf.get_variable("b_p", shape=(self._num_units,),
-                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            w = tf.get_variable("w", shape=(self._num_units, 1),
-                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            b = tf.get_variable("b", shape=(),
-                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            H_q = tf.reshape(self.H_q, [-1, self._num_units])
-            H_qW_q = tf.reshape(tf.matmul(H_q, W_q), [-1, self.size_q, self._num_units])
-            tempsum = tf.matmul(inputs, W_p) + tf.matmul(state[1], W_r) + b_p
-            G = tf.tanh(H_qW_q + tf.expand_dims(tempsum, axis=1)) # doing broadcasting, but can tf.expand_dims(tempsum, axis=1)), tf.tile([1, size_q, 1])
-            Gw = tf.reshape(tf.matmul(tf.reshape(G, [-1, self._num_units]), w), [-1, self.size_q])
-            alpha = tf.nn.softmax(Gw + b)
-            alpha = tf.expand_dims(alpha, axis=1)
-            H_qalpha = tf.reshape(tf.matmul(alpha, self.H_q), [-1, self._num_units])
-            z = tf.concat((inputs, H_qalpha), axis=1)
-        output, new_state = super(MatchLSTMCell, self).__call__(z, state, scope)
-        return output, new_state
-
 
 class Decoder(object):
     def __init__(self, size, output_size):
@@ -147,43 +94,12 @@ class Decoder(object):
         W_e = tf.get_variable("W_e", shape=(self.size, 1),
             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
 
-        b_s = tf.reshape(tf.matmul(tf.reshape(inputs, [-1, self.size]), W_s), [-1, self.output_size])
+        mask_vectors = tf.sequence_mask(masks, self.output_size, dtype=tf.float64)
+        log_mask_vectors = tf.log(mask_vectors)
+        a_s = tf.reshape(tf.matmul(tf.reshape(inputs, [-1, self.size]), W_s), [-1, self.output_size]) + log_mask_vectors
         out, _ = tf.nn.dynamic_rnn(self.cell, inputs, masks, dtype=tf.float64)
-        b_e = tf.reshape(tf.matmul(tf.reshape(out, [-1, self.size]), W_e), [-1, self.output_size])
-        return b_s, b_e
-        # self.size_p = inputs.get_shape().as_list()[1]
-
-        # with vs.variable_scope("boundary"):
-        #     V = tf.get_variable("V", shape=(2 * self.size, self.size),
-        #                 initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-        #     W_a = tf.get_variable("W_a", shape=(self.size, self.size),
-        #             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-        #     b_a = tf.get_variable("b_a", shape=(1, self.size),
-        #             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-        #     v = tf.get_variable("v", shape=(self.size, 1),
-        #             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-        #     c = tf.get_variable("c", shape=(),
-        #             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-        #     # calculations for start prediction
-        #     H_r = tf.reshape(inputs, [-1, 2 * self.size])
-        #     H_rV = tf.reshape(tf.matmul(H_r, V), [-1, self.size_p, self.size])
-        #     # TODO: check that first hidden state is 0?
-        #     # W_ah_a = tf.expand_dims(tf.matmul(h_a, W_a) + b_a, axis=1)
-        #     W_ah_a = tf.expand_dims(b_a, axis=1)
-        #     F_k = tf.reshape(tf.tanh(H_rV + W_ah_a), [-1, self.size])
-        #     F_kv = tf.reshape(tf.matmul(F_k, v), [-1, self.size_p])
-        #     b_s = F_kv + c # can expand dim of c if needed
-        #     b_h = tf.expand_dims(tf.nn.softmax(b_s), axis=1)
-        #     z = tf.reshape(tf.matmul(b_h, inputs), [-1, 2 * self.size])
-        #     # get hidden state for start
-        #     h_s, _ = tf.nn.dynamic_rnn(self.cell, tf.expand_dims(z, axis=1), dtype=tf.float64)
-        #     # calculations for end prediction
-        #     W_eh_e = tf.matmul(tf.reshape(h_s, [-1, self.size]), W_a) + b_a
-        #     F_k_e = tf.reshape(tf.tanh(H_rV + tf.expand_dims(W_eh_e, axis=1)), [-1, self.size])
-        #     F_kv_e = tf.reshape(tf.matmul(F_k_e, v), [-1, self.size_p])
-        #     b_e = F_kv_e + c # not softmaxed so we can use softmax_cross_entropy in calculating loss
-        # # b_s not softmaxed, a_s softmaxed
-        # return (b_s, b_e, tf.nn.softmax(b_s), tf.nn.softmax(b_e))
+        a_e = tf.reshape(tf.matmul(tf.reshape(out, [-1, self.size]), W_e), [-1, self.output_size]) + log_mask_vectors
+        return a_s, a_e
 
 
 class QASystem(object):
@@ -406,7 +322,7 @@ class QASystem(object):
         em = 0.0
 
         count = 0
-        random_indices = random.sample(xrange(len(dataset)), 100)
+        random_indices = random.sample(xrange(len(dataset)), sample)
         # a is list of tuples
         for index in random_indices:
             q, p, a = dataset[index]
@@ -425,6 +341,7 @@ class QASystem(object):
                 f1 += f1_score(answer, true_answer)
                 em += exact_match_score(answer, true_answer)
                 count += 1
+                if count >= sample: break
 
         f1 /= sample
         em /= sample
