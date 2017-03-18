@@ -50,12 +50,12 @@ class Encoder(object):
         """
         # symbolic function takes in Tensorflow object, returns tensorflow object
         # pseudocode
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True)
+        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
         with vs.variable_scope(scope):
             #(out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, dtype=tf.float64)
-            out, _ = tf.nn.dynamic_rnn(self.cell, inputs, sequence_length=masks, dtype=tf.float64)
+            (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, dtype=tf.float64)
 
-        return out
+        return tf.concat((out_fw, out_bw), 2)
 
     def encode_match(self, input_q, input_p, masks_p, scope="", reuse=False):
         self.match_cell = MatchLSTMCell(self.size, input_q, state_is_tuple=True)
@@ -63,6 +63,27 @@ class Encoder(object):
             (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.match_cell, self.match_cell, input_p, \
                 sequence_length=masks_p, dtype=tf.float64)
         return tf.concat((out_fw, out_bw), 2)
+
+    def encode_with_context(self, H_q, H_p):
+        # A = softmax(P Q^T)
+        # C_P = A Q
+        context_len = H_p.get_shape().as_list()[1]
+        with tf.variable_scope("context_vector"):
+            W = tf.get_variable("W", shape=(4*self.size, self.size),
+                        initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            b = tf.get_variable("b", shape=(self.size),
+                        initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+            A = tf.nn.softmax(tf.matmul(H_p, tf.transpose(H_q, perm=[0, 2, 1]))) # batch x p x q
+            C_p = tf.matmul(A, H_q) # batch x p x 2hidden
+            
+            # P = concat(C_P, P) W + b
+            # tf.reshape(P, [-1, size])
+            # then normal mat_mul
+            # then shape the result back to [-1, context_len]
+            H_p = tf.concat((C_p, H_p), 2) #batch x p x 4hidden
+            H_pW = tf.reshape(tf.matmul(tf.reshape(H_p, [-1, 4*self.size]), W), [-1, context_len, self.size]) # batch x p x size
+            H_p = H_pW + b
+        return H_p
 
 class MatchLSTMCell(tf.contrib.rnn.BasicLSTMCell):
     def __init__(self, num_units, input_q, state_is_tuple, scope=None):
@@ -105,7 +126,7 @@ class Decoder(object):
         self.size = size #state size
         self.output_size = output_size
 
-    def decode(self, inputs):
+    def decode(self, inputs, masks):
         """
         takes in a knowledge representation
         and output a probability estimation over
@@ -120,40 +141,49 @@ class Decoder(object):
         # given: h_r 
         # TODO: CUT DOWN TO BATCH_SIZE
         # each 2-d TF variable
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True)
-        self.size_p = inputs.get_shape().as_list()[1]
+        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
+        W_s = tf.get_variable("W_s", shape=(self.size, 1),
+            initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+        W_e = tf.get_variable("W_e", shape=(self.size, 1),
+            initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
 
-        with vs.variable_scope("boundary"):
-            V = tf.get_variable("V", shape=(2 * self.size, self.size),
-                        initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            W_a = tf.get_variable("W_a", shape=(self.size, self.size),
-                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            b_a = tf.get_variable("b_a", shape=(1, self.size),
-                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            v = tf.get_variable("v", shape=(self.size, 1),
-                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            c = tf.get_variable("c", shape=(),
-                    initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            # calculations for start prediction
-            H_r = tf.reshape(inputs, [-1, 2 * self.size])
-            H_rV = tf.reshape(tf.matmul(H_r, V), [-1, self.size_p, self.size])
-            # TODO: check that first hidden state is 0?
-            # W_ah_a = tf.expand_dims(tf.matmul(h_a, W_a) + b_a, axis=1)
-            W_ah_a = tf.expand_dims(b_a, axis=1)
-            F_k = tf.reshape(tf.tanh(H_rV + W_ah_a), [-1, self.size])
-            F_kv = tf.reshape(tf.matmul(F_k, v), [-1, self.size_p])
-            b_s = F_kv + c # can expand dim of c if needed
-            b_h = tf.expand_dims(tf.nn.softmax(b_s), axis=1)
-            z = tf.reshape(tf.matmul(b_h, inputs), [-1, 2 * self.size])
-            # get hidden state for start
-            h_s, _ = tf.nn.dynamic_rnn(self.cell, tf.expand_dims(z, axis=1), dtype=tf.float64)
-            # calculations for end prediction
-            W_eh_e = tf.matmul(tf.reshape(h_s, [-1, self.size]), W_a) + b_a
-            F_k_e = tf.reshape(tf.tanh(H_rV + tf.expand_dims(W_eh_e, axis=1)), [-1, self.size])
-            F_kv_e = tf.reshape(tf.matmul(F_k_e, v), [-1, self.size_p])
-            b_e = F_kv_e + c # not softmaxed so we can use softmax_cross_entropy in calculating loss
-        # b_s not softmaxed, a_s softmaxed
-        return (b_s, b_e, tf.nn.softmax(b_s), tf.nn.softmax(b_e))
+        b_s = tf.reshape(tf.matmul(tf.reshape(inputs, [-1, self.size]), W_s), [-1, self.output_size])
+        out, _ = tf.nn.dynamic_rnn(self.cell, inputs, masks, dtype=tf.float64)
+        b_e = tf.reshape(tf.matmul(tf.reshape(out, [-1, self.size]), W_e), [-1, self.output_size])
+        return b_s, b_e
+        # self.size_p = inputs.get_shape().as_list()[1]
+
+        # with vs.variable_scope("boundary"):
+        #     V = tf.get_variable("V", shape=(2 * self.size, self.size),
+        #                 initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+        #     W_a = tf.get_variable("W_a", shape=(self.size, self.size),
+        #             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+        #     b_a = tf.get_variable("b_a", shape=(1, self.size),
+        #             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+        #     v = tf.get_variable("v", shape=(self.size, 1),
+        #             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+        #     c = tf.get_variable("c", shape=(),
+        #             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
+        #     # calculations for start prediction
+        #     H_r = tf.reshape(inputs, [-1, 2 * self.size])
+        #     H_rV = tf.reshape(tf.matmul(H_r, V), [-1, self.size_p, self.size])
+        #     # TODO: check that first hidden state is 0?
+        #     # W_ah_a = tf.expand_dims(tf.matmul(h_a, W_a) + b_a, axis=1)
+        #     W_ah_a = tf.expand_dims(b_a, axis=1)
+        #     F_k = tf.reshape(tf.tanh(H_rV + W_ah_a), [-1, self.size])
+        #     F_kv = tf.reshape(tf.matmul(F_k, v), [-1, self.size_p])
+        #     b_s = F_kv + c # can expand dim of c if needed
+        #     b_h = tf.expand_dims(tf.nn.softmax(b_s), axis=1)
+        #     z = tf.reshape(tf.matmul(b_h, inputs), [-1, 2 * self.size])
+        #     # get hidden state for start
+        #     h_s, _ = tf.nn.dynamic_rnn(self.cell, tf.expand_dims(z, axis=1), dtype=tf.float64)
+        #     # calculations for end prediction
+        #     W_eh_e = tf.matmul(tf.reshape(h_s, [-1, self.size]), W_a) + b_a
+        #     F_k_e = tf.reshape(tf.tanh(H_rV + tf.expand_dims(W_eh_e, axis=1)), [-1, self.size])
+        #     F_kv_e = tf.reshape(tf.matmul(F_k_e, v), [-1, self.size_p])
+        #     b_e = F_kv_e + c # not softmaxed so we can use softmax_cross_entropy in calculating loss
+        # # b_s not softmaxed, a_s softmaxed
+        # return (b_s, b_e, tf.nn.softmax(b_s), tf.nn.softmax(b_e))
 
 
 class QASystem(object):
@@ -196,10 +226,11 @@ class QASystem(object):
         encoder = Encoder(self.FLAGS.state_size, self.FLAGS.embedding_size)
         H_q = encoder.encode_preprocess(self.questions_var, self.q_masks_placeholder, scope="question")
         H_p = encoder.encode_preprocess(self.paragraphs_var, self.p_masks_placeholder, scope="paragraph")
-        H_r = encoder.encode_match(H_q, H_p, self.p_masks_placeholder)
+        H_p = encoder.encode_with_context(H_q, H_p)
+        #H_r = encoder.encode_match(H_q, H_p, self.p_masks_placeholder)
         decoder = Decoder(self.FLAGS.state_size, self.FLAGS.output_size)
-        self.b_s, self.b_e, self.a_s, self.a_e = decoder.decode(H_r)
-
+        #self.b_s, self.b_e, self.a_s, self.a_e = decoder.decode(H_r)
+        self.a_s, self.a_e = decoder.decode(H_p, self.p_masks_placeholder)
 
     def setup_loss(self):
         """
@@ -207,8 +238,8 @@ class QASystem(object):
         :return:
         """
         with vs.variable_scope("loss"):
-            loss_s = tf.nn.softmax_cross_entropy_with_logits(labels=self.start_answer, logits=self.b_s)
-            loss_e = tf.nn.softmax_cross_entropy_with_logits(labels=self.end_answer, logits=self.b_e)
+            loss_s = tf.nn.softmax_cross_entropy_with_logits(labels=self.start_answer, logits=self.a_s)
+            loss_e = tf.nn.softmax_cross_entropy_with_logits(labels=self.end_answer, logits=self.a_e)
             self.loss = loss_s + loss_e
 
     def setup_training_op(self):
@@ -315,12 +346,12 @@ class QASystem(object):
 
         yp, yp2 = self.decode(session, test_q, test_p, q_masks, p_masks)
 
-        # a_s = np.argmax(yp, axis=1)
-        # a_e = np.argmax(yp2, axis=1)
-        a = np.matmul(yp, yp2.T)
-        flat_max_ind = np.argmax(a.reshape(-1, self.FLAGS.output_size*self.FLAGS.output_size), axis=1)
+        a_s = np.argmax(yp, axis=1)
+        a_e = np.argmax(yp2, axis=1)
+        # a = np.matmul(yp, yp2.T)
+        # flat_max_ind = np.argmax(a.reshape(-1, self.FLAGS.output_size*self.FLAGS.output_size), axis=1)
 
-        np.unravel_index(flat_max_ind, a.shape)
+        # np.unravel_index(flat_max_ind, a.shape)
 
         return (a_s, a_e)
 
