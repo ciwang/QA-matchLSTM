@@ -88,7 +88,7 @@ class Decoder(object):
         # given: h_r 
         # TODO: CUT DOWN TO BATCH_SIZE
         # each 2-d TF variable
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=False)
+        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True)
         W_s = tf.get_variable("W_s", shape=(self.size, 1),
             initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
         W_e = tf.get_variable("W_e", shape=(self.size, 1),
@@ -162,6 +162,7 @@ class QASystem(object):
         optimizer = get_optimizer(self.FLAGS.optimizer)(self.FLAGS.learning_rate)
         gradients, variables = map(list, zip(*optimizer.compute_gradients(self.loss)))
         self.grad_norm = tf.global_norm(gradients)
+        gradients, _ = tf.clip_by_global_norm(gradients, self.FLAGS.max_gradient_norm)
         grads_and_vars = zip(gradients, variables)
         self.train_op = optimizer.apply_gradients(grads_and_vars)
 
