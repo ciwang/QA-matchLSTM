@@ -102,7 +102,7 @@ class MatchLSTMCell(tf.contrib.rnn.BasicLSTMCell):
 
 class Decoder(object):
     def __init__(self, size, output_size):
-        self.size = size
+        self.size = size #state size
         self.output_size = output_size
 
     def decode(self, inputs):
@@ -315,8 +315,12 @@ class QASystem(object):
 
         yp, yp2 = self.decode(session, test_q, test_p, q_masks, p_masks)
 
-        a_s = np.argmax(yp, axis=1)
-        a_e = np.argmax(yp2, axis=1)
+        # a_s = np.argmax(yp, axis=1)
+        # a_e = np.argmax(yp2, axis=1)
+        a = np.matmul(yp, yp2.T)
+        flat_max_ind = np.argmax(a.reshape(-1, self.FLAGS.output_size*self.FLAGS.output_size), axis=1)
+
+        np.unravel_index(flat_max_ind, a.shape)
 
         return (a_s, a_e)
 
