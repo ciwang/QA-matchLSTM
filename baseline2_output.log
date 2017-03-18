@@ -1,0 +1,320 @@
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcublas.so.8.0 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcudnn.so.5 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcufft.so.8.0 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcuda.so.1 locally
+I tensorflow/stream_executor/dso_loader.cc:135] successfully opened CUDA library libcurand.so.8.0 locally
+WARNING:tensorflow:<tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl.BasicLSTMCell object at 0x7fe303090f10>: Using a concatenated state is slower and will soon be deprecated.  Use state_is_tuple=True.
+WARNING:tensorflow:<tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl.BasicLSTMCell object at 0x7fe303090f10>: Using a concatenated state is slower and will soon be deprecated.  Use state_is_tuple=True.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE3 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use AVX instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use AVX2 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use FMA instructions, but these are available on your machine and could speed up CPU computations.
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:885] Found device 0 with properties: 
+name: Tesla M60
+major: 5 minor: 2 memoryClockRate (GHz) 1.1775
+pciBusID 8ddc:00:00.0
+Total memory: 7.93GiB
+Free memory: 7.86GiB
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:906] DMA: 0 
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:916] 0:   Y 
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:975] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla M60, pci bus id: 8ddc:00:00.0)
+INFO:root:Created model with fresh parameters.
+INFO:root:Num params: 442300
+INFO:root:Number of params: 442300 (retrieval took 0.748186 secs)
+INFO:root:Evaluating initial
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 28652 get requests, put_count=28627 evicted_count=1000 eviction_rate=0.0349321 and unsatisfied allocation rate=0.0392643
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 100 to 110
+INFO:root:Validate cost: 11.0401188565
+INFO:root:Train - F1: 0.0472734601605, EM: 0.0, for 100 samples
+INFO:root:Validation - F1: 0.0304664926567, EM: 0.0, for 100 samples
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 113315 get requests, put_count=102461 evicted_count=1000 eviction_rate=0.00975981 and unsatisfied allocation rate=0.104814
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 256 to 281
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 14942 get requests, put_count=24966 evicted_count=10000 eviction_rate=0.400545 and unsatisfied allocation rate=6.69254e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 13937 get requests, put_count=22960 evicted_count=9000 eviction_rate=0.391986 and unsatisfied allocation rate=0.000358757
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 10297 get requests, put_count=17326 evicted_count=7000 eviction_rate=0.404017 and unsatisfied allocation rate=9.71157e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 8901 get requests, put_count=14933 evicted_count=6000 eviction_rate=0.401795 and unsatisfied allocation rate=0.000112347
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 8442 get requests, put_count=13478 evicted_count=5000 eviction_rate=0.370975 and unsatisfied allocation rate=0.000118455
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5032 get requests, put_count=8071 evicted_count=3000 eviction_rate=0.371701 and unsatisfied allocation rate=0.000198728
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3895 get requests, put_count=5939 evicted_count=2000 eviction_rate=0.336757 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2414 get requests, put_count=3463 evicted_count=1000 eviction_rate=0.288767 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 36147 get requests, put_count=36026 evicted_count=11000 eviction_rate=0.305335 and unsatisfied allocation rate=0.309016
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 542 to 596
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 15117 get requests, put_count=25170 evicted_count=10000 eviction_rate=0.397298 and unsatisfied allocation rate=6.61507e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 13803 get requests, put_count=22861 evicted_count=9000 eviction_rate=0.393684 and unsatisfied allocation rate=7.2448e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 12170 get requests, put_count=20234 evicted_count=8000 eviction_rate=0.395374 and unsatisfied allocation rate=8.21693e-05
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 10537 get requests, put_count=17607 evicted_count=7000 eviction_rate=0.397569 and unsatisfied allocation rate=0.000189807
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 8811 get requests, put_count=14890 evicted_count=6000 eviction_rate=0.402955 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7222 get requests, put_count=12309 evicted_count=5000 eviction_rate=0.406207 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5907 get requests, put_count=10002 evicted_count=4000 eviction_rate=0.39992 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 6713 get requests, put_count=10818 evicted_count=4000 eviction_rate=0.369754 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 4864 get requests, put_count=7979 evicted_count=3000 eviction_rate=0.375987 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5060 get requests, put_count=8187 evicted_count=3000 eviction_rate=0.366435 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2858 get requests, put_count=4998 evicted_count=2000 eviction_rate=0.40016 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2893 get requests, put_count=5047 evicted_count=2000 eviction_rate=0.396275 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2819 get requests, put_count=4988 evicted_count=2000 eviction_rate=0.400962 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2800 get requests, put_count=4986 evicted_count=2000 eviction_rate=0.401123 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 4193 get requests, put_count=7397 evicted_count=3000 eviction_rate=0.40557 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3879 get requests, put_count=7104 evicted_count=3000 eviction_rate=0.422297 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5275 get requests, put_count=9522 evicted_count=4000 eviction_rate=0.42008 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7270 get requests, put_count=12542 evicted_count=5000 eviction_rate=0.398661 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 8863 get requests, put_count=15162 evicted_count=6000 eviction_rate=0.395726 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 36900 get requests, put_count=37169 evicted_count=8000 eviction_rate=0.215233 and unsatisfied allocation rate=0.218428
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 3625 to 3987
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2594 get requests, put_count=4992 evicted_count=2000 eviction_rate=0.400641 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7434 get requests, put_count=12872 evicted_count=5000 eviction_rate=0.38844 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3238 get requests, put_count=5768 evicted_count=2000 eviction_rate=0.346741 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2605 get requests, put_count=4246 evicted_count=1000 eviction_rate=0.235516 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3701 get requests, put_count=6477 evicted_count=2000 eviction_rate=0.308785 and unsatisfied allocation rate=0
+INFO:root:Epoch = 0 | Num batches processed = 100 | Train epoch ETA = 2150.631614 | Grad norm = 85.162118 | Training loss = 8.051864
+INFO:root:Epoch = 0 | Num batches processed = 200 | Train epoch ETA = 1694.236866 | Grad norm = 98.083424 | Training loss = 7.688819
+INFO:root:Epoch = 0 | Num batches processed = 300 | Train epoch ETA = 1634.224164 | Grad norm = 140.405393 | Training loss = 7.305460
+INFO:root:Epoch = 0 | Num batches processed = 400 | Train epoch ETA = 1566.440526 | Grad norm = 121.617039 | Training loss = 7.005750
+INFO:root:Epoch = 0 | Num batches processed = 500 | Train epoch ETA = 1207.660941 | Grad norm = 114.860275 | Training loss = 6.309543
+INFO:root:Epoch = 0 | Num batches processed = 600 | Train epoch ETA = 1528.091619 | Grad norm = 128.725737 | Training loss = 6.658305
+INFO:root:Epoch = 0 | Num batches processed = 700 | Train epoch ETA = 1168.640134 | Grad norm = 119.771757 | Training loss = 5.640034
+INFO:root:Epoch = 0 | Num batches processed = 800 | Train epoch ETA = 1021.598380 | Grad norm = 143.769117 | Training loss = 5.860928
+INFO:root:Epoch = 0 | Num batches processed = 900 | Train epoch ETA = 864.518456 | Grad norm = 146.899717 | Training loss = 6.066226
+INFO:root:Epoch = 0 | Num batches processed = 1000 | Train epoch ETA = 868.426515 | Grad norm = 151.951826 | Training loss = 5.993580
+INFO:root:Epoch = 0 | Num batches processed = 1100 | Train epoch ETA = 928.248871 | Grad norm = 135.143390 | Training loss = 5.466883
+INFO:root:Epoch = 0 | Num batches processed = 1200 | Train epoch ETA = 832.614672 | Grad norm = 131.795193 | Training loss = 5.868219
+INFO:root:Epoch = 0 | Num batches processed = 1300 | Train epoch ETA = 689.480467 | Grad norm = 124.464987 | Training loss = 6.064540
+INFO:root:Epoch = 0 | Num batches processed = 1400 | Train epoch ETA = 626.059912 | Grad norm = 135.873193 | Training loss = 5.326757
+INFO:root:Epoch = 0 | Num batches processed = 1500 | Train epoch ETA = 433.485289 | Grad norm = 158.112661 | Training loss = 6.509940
+INFO:root:Epoch = 0 | Num batches processed = 1600 | Train epoch ETA = 367.732224 | Grad norm = 115.879854 | Training loss = 5.147330
+INFO:root:Epoch = 0 | Num batches processed = 1700 | Train epoch ETA = 285.885570 | Grad norm = 137.971871 | Training loss = 6.506156
+INFO:root:Epoch = 0 | Num batches processed = 1800 | Train epoch ETA = 166.413541 | Grad norm = 175.972054 | Training loss = 6.064384
+INFO:root:Epoch = 0 | Num batches processed = 1900 | Train epoch ETA = 97.313286 | Grad norm = 164.497708 | Training loss = 6.617155
+INFO:root:Epoch = 0 | Num batches processed = 2000 | Train epoch ETA = 0.951661 | Grad norm = 157.745231 | Training loss = 5.612468
+INFO:root:Model saved in file: train/results/20170318_094746/model.weights/
+INFO:root:Evaluating epoch 0
+INFO:root:Validate cost: 5.81249122053
+INFO:root:Train - F1: 0.241652523257, EM: 0.18, for 100 samples
+INFO:root:Validation - F1: 0.188911097203, EM: 0.13, for 100 samples
+INFO:root:Epoch = 1 | Num batches processed = 100 | Train epoch ETA = 1783.826393 | Grad norm = 171.814409 | Training loss = 5.100901
+INFO:root:Epoch = 1 | Num batches processed = 200 | Train epoch ETA = 1581.220070 | Grad norm = 140.173285 | Training loss = 5.844475
+INFO:root:Epoch = 1 | Num batches processed = 300 | Train epoch ETA = 1514.209752 | Grad norm = 146.584266 | Training loss = 5.365887
+INFO:root:Epoch = 1 | Num batches processed = 400 | Train epoch ETA = 1520.173682 | Grad norm = 157.386899 | Training loss = 5.644054
+INFO:root:Epoch = 1 | Num batches processed = 500 | Train epoch ETA = 1464.872683 | Grad norm = 171.812674 | Training loss = 6.026337
+INFO:root:Epoch = 1 | Num batches processed = 600 | Train epoch ETA = 1242.391506 | Grad norm = 167.901488 | Training loss = 5.031540
+INFO:root:Epoch = 1 | Num batches processed = 700 | Train epoch ETA = 1008.227976 | Grad norm = 168.767369 | Training loss = 4.884309
+INFO:root:Epoch = 1 | Num batches processed = 800 | Train epoch ETA = 1219.981812 | Grad norm = 188.319500 | Training loss = 5.199702
+INFO:root:Epoch = 1 | Num batches processed = 900 | Train epoch ETA = 882.471278 | Grad norm = 157.739525 | Training loss = 4.533569
+INFO:root:Epoch = 1 | Num batches processed = 1000 | Train epoch ETA = 939.430552 | Grad norm = 160.222404 | Training loss = 4.472284
+INFO:root:Epoch = 1 | Num batches processed = 1100 | Train epoch ETA = 758.132036 | Grad norm = 147.249986 | Training loss = 5.403210
+INFO:root:Epoch = 1 | Num batches processed = 1200 | Train epoch ETA = 710.006387 | Grad norm = 151.346998 | Training loss = 5.667601
+INFO:root:Epoch = 1 | Num batches processed = 1300 | Train epoch ETA = 684.606413 | Grad norm = 169.327680 | Training loss = 5.142966
+INFO:root:Epoch = 1 | Num batches processed = 1400 | Train epoch ETA = 634.588077 | Grad norm = 193.723082 | Training loss = 5.948254
+INFO:root:Epoch = 1 | Num batches processed = 1500 | Train epoch ETA = 442.893468 | Grad norm = 138.352411 | Training loss = 5.234652
+INFO:root:Epoch = 1 | Num batches processed = 1600 | Train epoch ETA = 363.271159 | Grad norm = 169.084929 | Training loss = 5.178585
+INFO:root:Epoch = 1 | Num batches processed = 1700 | Train epoch ETA = 246.083753 | Grad norm = 148.785283 | Training loss = 5.225353
+INFO:root:Epoch = 1 | Num batches processed = 1800 | Train epoch ETA = 213.039334 | Grad norm = 170.373576 | Training loss = 4.767382
+INFO:root:Epoch = 1 | Num batches processed = 1900 | Train epoch ETA = 88.946449 | Grad norm = 153.737626 | Training loss = 5.004237
+INFO:root:Epoch = 1 | Num batches processed = 2000 | Train epoch ETA = 0.883147 | Grad norm = 143.172296 | Training loss = 5.249045
+INFO:root:Model saved in file: train/results/20170318_101920/model.weights/
+INFO:root:Evaluating epoch 1
+INFO:root:Validate cost: 5.31527582399
+INFO:root:Train - F1: 0.27072155241, EM: 0.15, for 100 samples
+INFO:root:Validation - F1: 0.164011513381, EM: 0.1, for 100 samples
+INFO:root:Epoch = 2 | Num batches processed = 100 | Train epoch ETA = 1882.054377 | Grad norm = 171.419009 | Training loss = 4.668305
+INFO:root:Epoch = 2 | Num batches processed = 200 | Train epoch ETA = 1699.585801 | Grad norm = 177.437161 | Training loss = 4.130814
+INFO:root:Epoch = 2 | Num batches processed = 300 | Train epoch ETA = 1801.975056 | Grad norm = 178.844737 | Training loss = 4.604901
+INFO:root:Epoch = 2 | Num batches processed = 400 | Train epoch ETA = 1499.139273 | Grad norm = 155.913549 | Training loss = 4.325688
+INFO:root:Epoch = 2 | Num batches processed = 500 | Train epoch ETA = 1575.685263 | Grad norm = 156.221719 | Training loss = 4.324586
+INFO:root:Epoch = 2 | Num batches processed = 600 | Train epoch ETA = 1223.570565 | Grad norm = 216.465426 | Training loss = 4.492482
+INFO:root:Epoch = 2 | Num batches processed = 700 | Train epoch ETA = 1259.062386 | Grad norm = 156.379325 | Training loss = 4.322049
+INFO:root:Epoch = 2 | Num batches processed = 800 | Train epoch ETA = 1211.650443 | Grad norm = 143.856895 | Training loss = 3.617116
+INFO:root:Epoch = 2 | Num batches processed = 900 | Train epoch ETA = 1106.975261 | Grad norm = 205.437914 | Training loss = 4.959434
+INFO:root:Epoch = 2 | Num batches processed = 1000 | Train epoch ETA = 871.565809 | Grad norm = 175.089366 | Training loss = 4.613662
+INFO:root:Epoch = 2 | Num batches processed = 1100 | Train epoch ETA = 888.783463 | Grad norm = 207.206632 | Training loss = 4.885394
+INFO:root:Epoch = 2 | Num batches processed = 1200 | Train epoch ETA = 806.460308 | Grad norm = 186.207765 | Training loss = 4.782899
+INFO:root:Epoch = 2 | Num batches processed = 1300 | Train epoch ETA = 712.113571 | Grad norm = 144.142052 | Training loss = 3.902818
+INFO:root:Epoch = 2 | Num batches processed = 1400 | Train epoch ETA = 515.809481 | Grad norm = 172.711970 | Training loss = 4.809384
+INFO:root:Epoch = 2 | Num batches processed = 1500 | Train epoch ETA = 517.281439 | Grad norm = 178.513507 | Training loss = 4.266985
+INFO:root:Epoch = 2 | Num batches processed = 1600 | Train epoch ETA = 368.986190 | Grad norm = 195.515708 | Training loss = 4.895809
+INFO:root:Epoch = 2 | Num batches processed = 1700 | Train epoch ETA = 320.235405 | Grad norm = 204.286597 | Training loss = 4.062227
+INFO:root:Epoch = 2 | Num batches processed = 1800 | Train epoch ETA = 184.262332 | Grad norm = 191.732621 | Training loss = 4.606793
+INFO:root:Epoch = 2 | Num batches processed = 1900 | Train epoch ETA = 100.112907 | Grad norm = 188.128556 | Training loss = 4.484686
+INFO:root:Epoch = 2 | Num batches processed = 2000 | Train epoch ETA = 0.940988 | Grad norm = 166.804528 | Training loss = 5.135254
+INFO:root:Model saved in file: train/results/20170318_105109/model.weights/
+INFO:root:Evaluating epoch 2
+INFO:root:Validate cost: 5.07023552754
+INFO:root:Train - F1: 0.257817295484, EM: 0.2, for 100 samples
+INFO:root:Validation - F1: 0.19892261216, EM: 0.12, for 100 samples
+INFO:root:Epoch = 3 | Num batches processed = 100 | Train epoch ETA = 1809.082842 | Grad norm = 194.412759 | Training loss = 4.064025
+INFO:root:Epoch = 3 | Num batches processed = 200 | Train epoch ETA = 1736.170846 | Grad norm = 165.986516 | Training loss = 4.133104
+INFO:root:Epoch = 3 | Num batches processed = 300 | Train epoch ETA = 1545.542140 | Grad norm = 155.007453 | Training loss = 3.303340
+INFO:root:Epoch = 3 | Num batches processed = 400 | Train epoch ETA = 1447.275060 | Grad norm = 208.110625 | Training loss = 4.516319
+INFO:root:Epoch = 3 | Num batches processed = 500 | Train epoch ETA = 1273.466467 | Grad norm = 188.957064 | Training loss = 3.435694
+INFO:root:Epoch = 3 | Num batches processed = 600 | Train epoch ETA = 1232.224470 | Grad norm = 200.463391 | Training loss = 4.289487
+INFO:root:Epoch = 3 | Num batches processed = 700 | Train epoch ETA = 1172.112318 | Grad norm = 224.761303 | Training loss = 4.495910
+INFO:root:Epoch = 3 | Num batches processed = 800 | Train epoch ETA = 1133.872574 | Grad norm = 222.236738 | Training loss = 4.240846
+INFO:root:Epoch = 3 | Num batches processed = 900 | Train epoch ETA = 994.669851 | Grad norm = 167.273171 | Training loss = 3.611282
+INFO:root:Epoch = 3 | Num batches processed = 1000 | Train epoch ETA = 989.731810 | Grad norm = 222.133772 | Training loss = 4.845333
+INFO:root:Epoch = 3 | Num batches processed = 1100 | Train epoch ETA = 905.710466 | Grad norm = 193.190795 | Training loss = 4.605801
+INFO:root:Epoch = 3 | Num batches processed = 1200 | Train epoch ETA = 790.366608 | Grad norm = 174.855405 | Training loss = 3.635055
+INFO:root:Epoch = 3 | Num batches processed = 1300 | Train epoch ETA = 677.108563 | Grad norm = 228.027415 | Training loss = 5.330370
+INFO:root:Epoch = 3 | Num batches processed = 1400 | Train epoch ETA = 534.407464 | Grad norm = 165.819116 | Training loss = 3.797245
+INFO:root:Epoch = 3 | Num batches processed = 1500 | Train epoch ETA = 490.948475 | Grad norm = 210.297899 | Training loss = 4.386824
+INFO:root:Epoch = 3 | Num batches processed = 1600 | Train epoch ETA = 380.783569 | Grad norm = 176.955631 | Training loss = 4.116863
+INFO:root:Epoch = 3 | Num batches processed = 1700 | Train epoch ETA = 272.743646 | Grad norm = 190.333647 | Training loss = 4.534798
+INFO:root:Epoch = 3 | Num batches processed = 1800 | Train epoch ETA = 196.280341 | Grad norm = 163.578829 | Training loss = 4.432396
+INFO:root:Epoch = 3 | Num batches processed = 1900 | Train epoch ETA = 96.046880 | Grad norm = 176.702270 | Training loss = 4.300106
+INFO:root:Epoch = 3 | Num batches processed = 2000 | Train epoch ETA = 0.958938 | Grad norm = 182.743318 | Training loss = 3.700328
+INFO:root:Model saved in file: train/results/20170318_112314/model.weights/
+INFO:root:Evaluating epoch 3
+INFO:root:Validate cost: 4.996692345
+INFO:root:Train - F1: 0.251372769648, EM: 0.15, for 100 samples
+INFO:root:Validation - F1: 0.248971244023, EM: 0.16, for 100 samples
+INFO:root:Epoch = 4 | Num batches processed = 100 | Train epoch ETA = 1759.430635 | Grad norm = 187.202952 | Training loss = 3.311133
+INFO:root:Epoch = 4 | Num batches processed = 200 | Train epoch ETA = 1735.429286 | Grad norm = 204.387993 | Training loss = 3.799175
+INFO:root:Epoch = 4 | Num batches processed = 300 | Train epoch ETA = 1608.834706 | Grad norm = 227.230565 | Training loss = 4.295236
+INFO:root:Epoch = 4 | Num batches processed = 400 | Train epoch ETA = 1556.151201 | Grad norm = 192.621327 | Training loss = 4.012002
+INFO:root:Epoch = 4 | Num batches processed = 500 | Train epoch ETA = 1400.071329 | Grad norm = 147.361584 | Training loss = 2.651542
+INFO:root:Epoch = 4 | Num batches processed = 600 | Train epoch ETA = 1205.560636 | Grad norm = 198.199569 | Training loss = 4.154500
+INFO:root:Epoch = 4 | Num batches processed = 700 | Train epoch ETA = 1305.001665 | Grad norm = 166.840623 | Training loss = 3.397382
+INFO:root:Epoch = 4 | Num batches processed = 800 | Train epoch ETA = 1148.746829 | Grad norm = 242.096541 | Training loss = 4.869214
+INFO:root:Epoch = 4 | Num batches processed = 900 | Train epoch ETA = 1107.936270 | Grad norm = 176.260063 | Training loss = 3.756488
+INFO:root:Epoch = 4 | Num batches processed = 1000 | Train epoch ETA = 862.670824 | Grad norm = 193.647426 | Training loss = 4.227478
+INFO:root:Epoch = 4 | Num batches processed = 1100 | Train epoch ETA = 805.684160 | Grad norm = 214.456934 | Training loss = 4.595835
+INFO:root:Epoch = 4 | Num batches processed = 1200 | Train epoch ETA = 701.869016 | Grad norm = 198.808349 | Training loss = 4.373969
+INFO:root:Epoch = 4 | Num batches processed = 1300 | Train epoch ETA = 689.137012 | Grad norm = 222.748556 | Training loss = 3.628415
+INFO:root:Epoch = 4 | Num batches processed = 1400 | Train epoch ETA = 640.679317 | Grad norm = 206.591529 | Training loss = 4.374144
+INFO:root:Epoch = 4 | Num batches processed = 1500 | Train epoch ETA = 468.095381 | Grad norm = 197.129996 | Training loss = 4.317226
+INFO:root:Epoch = 4 | Num batches processed = 1600 | Train epoch ETA = 367.546175 | Grad norm = 209.288963 | Training loss = 3.867533
+INFO:root:Epoch = 4 | Num batches processed = 1700 | Train epoch ETA = 301.509596 | Grad norm = 192.508101 | Training loss = 3.653169
+INFO:root:Epoch = 4 | Num batches processed = 1800 | Train epoch ETA = 191.277414 | Grad norm = 261.305469 | Training loss = 3.778146
+INFO:root:Epoch = 4 | Num batches processed = 1900 | Train epoch ETA = 96.654594 | Grad norm = 196.728591 | Training loss = 4.232787
+INFO:root:Epoch = 4 | Num batches processed = 2000 | Train epoch ETA = 1.014583 | Grad norm = 187.679630 | Training loss = 4.028169
+INFO:root:Model saved in file: train/results/20170318_115532/model.weights/
+INFO:root:Evaluating epoch 4
+INFO:root:Validate cost: 4.98630898581
+INFO:root:Train - F1: 0.359241084786, EM: 0.26, for 100 samples
+INFO:root:Validation - F1: 0.184432979397, EM: 0.09, for 100 samples
+INFO:root:Epoch = 5 | Num batches processed = 100 | Train epoch ETA = 1655.193225 | Grad norm = 230.025331 | Training loss = 4.009599
+INFO:root:Epoch = 5 | Num batches processed = 200 | Train epoch ETA = 1600.384687 | Grad norm = 189.984779 | Training loss = 3.016678
+INFO:root:Epoch = 5 | Num batches processed = 300 | Train epoch ETA = 1443.179291 | Grad norm = 223.737983 | Training loss = 2.988655
+INFO:root:Epoch = 5 | Num batches processed = 400 | Train epoch ETA = 1556.373737 | Grad norm = 212.043888 | Training loss = 3.794909
+INFO:root:Epoch = 5 | Num batches processed = 500 | Train epoch ETA = 1330.608051 | Grad norm = 198.909683 | Training loss = 2.965583
+INFO:root:Epoch = 5 | Num batches processed = 600 | Train epoch ETA = 1387.100575 | Grad norm = 198.103718 | Training loss = 3.364654
+INFO:root:Epoch = 5 | Num batches processed = 700 | Train epoch ETA = 1190.164013 | Grad norm = 196.755421 | Training loss = 3.000435
+INFO:root:Epoch = 5 | Num batches processed = 800 | Train epoch ETA = 1024.267935 | Grad norm = 209.732076 | Training loss = 3.714640
+INFO:root:Epoch = 5 | Num batches processed = 900 | Train epoch ETA = 923.377787 | Grad norm = 198.999280 | Training loss = 2.705861
+INFO:root:Epoch = 5 | Num batches processed = 1000 | Train epoch ETA = 950.705663 | Grad norm = 193.360140 | Training loss = 3.155192
+INFO:root:Epoch = 5 | Num batches processed = 1100 | Train epoch ETA = 829.969656 | Grad norm = 192.171187 | Training loss = 3.387418
+INFO:root:Epoch = 5 | Num batches processed = 1200 | Train epoch ETA = 712.452564 | Grad norm = 224.764814 | Training loss = 4.045468
+INFO:root:Epoch = 5 | Num batches processed = 1300 | Train epoch ETA = 646.660560 | Grad norm = 165.487425 | Training loss = 2.626644
+INFO:root:Epoch = 5 | Num batches processed = 1400 | Train epoch ETA = 505.361809 | Grad norm = 217.024570 | Training loss = 3.873436
+INFO:root:Epoch = 5 | Num batches processed = 1500 | Train epoch ETA = 427.738301 | Grad norm = 198.190409 | Training loss = 3.605783
+INFO:root:Epoch = 5 | Num batches processed = 1600 | Train epoch ETA = 384.552256 | Grad norm = 198.394150 | Training loss = 3.350212
+INFO:root:Epoch = 5 | Num batches processed = 1700 | Train epoch ETA = 312.331750 | Grad norm = 191.710762 | Training loss = 3.259453
+INFO:root:Epoch = 5 | Num batches processed = 1800 | Train epoch ETA = 182.162097 | Grad norm = 223.148086 | Training loss = 3.073422
+INFO:root:Epoch = 5 | Num batches processed = 1900 | Train epoch ETA = 85.417316 | Grad norm = 209.676265 | Training loss = 3.756840
+INFO:root:Epoch = 5 | Num batches processed = 2000 | Train epoch ETA = 0.894660 | Grad norm = 219.104668 | Training loss = 3.926286
+INFO:root:Model saved in file: train/results/20170318_122707/model.weights/
+INFO:root:Evaluating epoch 5
+INFO:root:Validate cost: 5.13030627623
+INFO:root:Train - F1: 0.320962895658, EM: 0.2, for 100 samples
+INFO:root:Validation - F1: 0.21306002725, EM: 0.13, for 100 samples
+INFO:root:Epoch = 6 | Num batches processed = 100 | Train epoch ETA = 1900.302473 | Grad norm = 235.853013 | Training loss = 3.103663
+INFO:root:Epoch = 6 | Num batches processed = 200 | Train epoch ETA = 1762.631690 | Grad norm = 245.070715 | Training loss = 3.550626
+INFO:root:Epoch = 6 | Num batches processed = 300 | Train epoch ETA = 1632.692807 | Grad norm = 202.624995 | Training loss = 2.932777
+INFO:root:Epoch = 6 | Num batches processed = 400 | Train epoch ETA = 1542.224198 | Grad norm = 187.216039 | Training loss = 2.699820
+INFO:root:Epoch = 6 | Num batches processed = 500 | Train epoch ETA = 1325.558558 | Grad norm = 236.133549 | Training loss = 3.384676
+INFO:root:Epoch = 6 | Num batches processed = 600 | Train epoch ETA = 1218.774977 | Grad norm = 189.269098 | Training loss = 3.447598
+INFO:root:Epoch = 6 | Num batches processed = 700 | Train epoch ETA = 1110.101548 | Grad norm = 248.876653 | Training loss = 3.963755
+INFO:root:Epoch = 6 | Num batches processed = 800 | Train epoch ETA = 1251.663980 | Grad norm = 237.288212 | Training loss = 3.869236
+INFO:root:Epoch = 6 | Num batches processed = 900 | Train epoch ETA = 964.459383 | Grad norm = 203.837154 | Training loss = 2.433671
+INFO:root:Epoch = 6 | Num batches processed = 1000 | Train epoch ETA = 871.550535 | Grad norm = 258.314533 | Training loss = 4.224533
+INFO:root:Epoch = 6 | Num batches processed = 1100 | Train epoch ETA = 779.484661 | Grad norm = 200.506842 | Training loss = 3.344586
+INFO:root:Epoch = 6 | Num batches processed = 1200 | Train epoch ETA = 962.644178 | Grad norm = 209.520403 | Training loss = 3.143061
+INFO:root:Epoch = 6 | Num batches processed = 1300 | Train epoch ETA = 645.799833 | Grad norm = 195.462957 | Training loss = 3.492470
+INFO:root:Epoch = 6 | Num batches processed = 1400 | Train epoch ETA = 517.270605 | Grad norm = 218.821327 | Training loss = 2.977146
+INFO:root:Epoch = 6 | Num batches processed = 1500 | Train epoch ETA = 497.247909 | Grad norm = 197.134264 | Training loss = 3.222858
+INFO:root:Epoch = 6 | Num batches processed = 1600 | Train epoch ETA = 347.618474 | Grad norm = 209.514063 | Training loss = 3.240045
+INFO:root:Epoch = 6 | Num batches processed = 1700 | Train epoch ETA = 313.247386 | Grad norm = 216.808019 | Training loss = 3.987797
+INFO:root:Epoch = 6 | Num batches processed = 1800 | Train epoch ETA = 185.683607 | Grad norm = 177.915940 | Training loss = 2.477903
+INFO:root:Epoch = 6 | Num batches processed = 1900 | Train epoch ETA = 100.763869 | Grad norm = 247.925858 | Training loss = 4.451953
+INFO:root:Epoch = 6 | Num batches processed = 2000 | Train epoch ETA = 0.911931 | Grad norm = 201.766142 | Training loss = 3.230819
+INFO:root:Model saved in file: train/results/20170318_125836/model.weights/
+INFO:root:Evaluating epoch 6
+INFO:root:Validate cost: 5.22427544125
+INFO:root:Train - F1: 0.233868984714, EM: 0.15, for 100 samples
+INFO:root:Validation - F1: 0.207242083607, EM: 0.11, for 100 samples
+INFO:root:Epoch = 7 | Num batches processed = 100 | Train epoch ETA = 1777.201476 | Grad norm = 169.043030 | Training loss = 2.141026
+INFO:root:Epoch = 7 | Num batches processed = 200 | Train epoch ETA = 1567.734589 | Grad norm = 252.980052 | Training loss = 3.064934
+INFO:root:Epoch = 7 | Num batches processed = 300 | Train epoch ETA = 1614.980411 | Grad norm = 227.805872 | Training loss = 2.960935
+INFO:root:Epoch = 7 | Num batches processed = 400 | Train epoch ETA = 1409.451219 | Grad norm = 212.666324 | Training loss = 2.671835
+INFO:root:Epoch = 7 | Num batches processed = 500 | Train epoch ETA = 1334.333439 | Grad norm = 271.496253 | Training loss = 3.815200
+INFO:root:Epoch = 7 | Num batches processed = 600 | Train epoch ETA = 1340.562288 | Grad norm = 169.141396 | Training loss = 2.109914
+INFO:root:Epoch = 7 | Num batches processed = 700 | Train epoch ETA = 1137.371870 | Grad norm = 243.532669 | Training loss = 3.793502
+INFO:root:Epoch = 7 | Num batches processed = 800 | Train epoch ETA = 1024.547976 | Grad norm = 261.800502 | Training loss = 3.174696
+INFO:root:Epoch = 7 | Num batches processed = 900 | Train epoch ETA = 1008.286979 | Grad norm = 186.166465 | Training loss = 3.015095
+INFO:root:Epoch = 7 | Num batches processed = 1000 | Train epoch ETA = 977.752899 | Grad norm = 222.898535 | Training loss = 3.228436
+INFO:root:Epoch = 7 | Num batches processed = 1100 | Train epoch ETA = 820.428856 | Grad norm = 176.894012 | Training loss = 2.752032
+INFO:root:Epoch = 7 | Num batches processed = 1200 | Train epoch ETA = 746.705150 | Grad norm = 274.599213 | Training loss = 3.981188
+INFO:root:Epoch = 7 | Num batches processed = 1300 | Train epoch ETA = 616.292446 | Grad norm = 232.214798 | Training loss = 3.502182
+INFO:root:Epoch = 7 | Num batches processed = 1400 | Train epoch ETA = 512.996850 | Grad norm = 183.694500 | Training loss = 2.564782
+INFO:root:Epoch = 7 | Num batches processed = 1500 | Train epoch ETA = 441.460095 | Grad norm = 150.265840 | Training loss = 2.749099
+INFO:root:Epoch = 7 | Num batches processed = 1600 | Train epoch ETA = 357.742177 | Grad norm = 252.606890 | Training loss = 3.775863
+INFO:root:Epoch = 7 | Num batches processed = 1700 | Train epoch ETA = 267.612520 | Grad norm = 229.191525 | Training loss = 2.947380
+INFO:root:Epoch = 7 | Num batches processed = 1800 | Train epoch ETA = 202.397362 | Grad norm = 213.529192 | Training loss = 3.260139
+INFO:root:Epoch = 7 | Num batches processed = 1900 | Train epoch ETA = 91.457011 | Grad norm = 252.874566 | Training loss = 3.510560
+INFO:root:Epoch = 7 | Num batches processed = 2000 | Train epoch ETA = 1.016800 | Grad norm = 205.839952 | Training loss = 2.733734
+INFO:root:Model saved in file: train/results/20170318_133014/model.weights/
+INFO:root:Evaluating epoch 7
+INFO:root:Validate cost: 5.39006474615
+INFO:root:Train - F1: 0.298751697931, EM: 0.2, for 100 samples
+INFO:root:Validation - F1: 0.121633858594, EM: 0.06, for 100 samples
+INFO:root:Epoch = 8 | Num batches processed = 100 | Train epoch ETA = 1869.441336 | Grad norm = 179.717356 | Training loss = 2.414909
+INFO:root:Epoch = 8 | Num batches processed = 200 | Train epoch ETA = 1863.284148 | Grad norm = 230.446535 | Training loss = 2.983095
+INFO:root:Epoch = 8 | Num batches processed = 300 | Train epoch ETA = 1453.776718 | Grad norm = 234.892942 | Training loss = 3.022431
+INFO:root:Epoch = 8 | Num batches processed = 400 | Train epoch ETA = 1419.566484 | Grad norm = 187.231193 | Training loss = 2.081734
+INFO:root:Epoch = 8 | Num batches processed = 500 | Train epoch ETA = 1295.468087 | Grad norm = 210.192052 | Training loss = 3.003532
+INFO:root:Epoch = 8 | Num batches processed = 600 | Train epoch ETA = 1322.052324 | Grad norm = 269.145826 | Training loss = 2.901458
+INFO:root:Epoch = 8 | Num batches processed = 700 | Train epoch ETA = 1300.824126 | Grad norm = 236.520347 | Training loss = 2.477786
+INFO:root:Epoch = 8 | Num batches processed = 800 | Train epoch ETA = 1054.672451 | Grad norm = 240.015399 | Training loss = 2.647000
+INFO:root:Epoch = 8 | Num batches processed = 900 | Train epoch ETA = 945.261529 | Grad norm = 284.720716 | Training loss = 3.234849
+INFO:root:Epoch = 8 | Num batches processed = 1000 | Train epoch ETA = 939.356568 | Grad norm = 257.684511 | Training loss = 3.356381
+INFO:root:Epoch = 8 | Num batches processed = 1100 | Train epoch ETA = 896.524756 | Grad norm = 255.888797 | Training loss = 3.110141
+INFO:root:Epoch = 8 | Num batches processed = 1200 | Train epoch ETA = 789.322939 | Grad norm = 243.739202 | Training loss = 3.187793
+INFO:root:Epoch = 8 | Num batches processed = 1300 | Train epoch ETA = 615.184866 | Grad norm = 241.072088 | Training loss = 2.245853
+INFO:root:Epoch = 8 | Num batches processed = 1400 | Train epoch ETA = 553.376137 | Grad norm = 253.852848 | Training loss = 3.694179
+INFO:root:Epoch = 8 | Num batches processed = 1500 | Train epoch ETA = 474.935555 | Grad norm = 241.607807 | Training loss = 3.003861
+INFO:root:Epoch = 8 | Num batches processed = 1600 | Train epoch ETA = 383.648399 | Grad norm = 248.814667 | Training loss = 3.633617
+INFO:root:Epoch = 8 | Num batches processed = 1700 | Train epoch ETA = 270.918903 | Grad norm = 221.949682 | Training loss = 3.364070
+INFO:root:Epoch = 8 | Num batches processed = 1800 | Train epoch ETA = 172.046549 | Grad norm = 269.421922 | Training loss = 3.778438
+INFO:root:Epoch = 8 | Num batches processed = 1900 | Train epoch ETA = 93.682967 | Grad norm = 231.406928 | Training loss = 3.078013
+INFO:root:Epoch = 8 | Num batches processed = 2000 | Train epoch ETA = 0.870074 | Grad norm = 196.502417 | Training loss = 2.826774
+INFO:root:Model saved in file: train/results/20170318_140157/model.weights/
+INFO:root:Evaluating epoch 8
+INFO:root:Validate cost: 5.67733039866
+INFO:root:Train - F1: 0.376649895913, EM: 0.26, for 100 samples
+INFO:root:Validation - F1: 0.208073624555, EM: 0.09, for 100 samples
+INFO:root:Epoch = 9 | Num batches processed = 100 | Train epoch ETA = 1668.400909 | Grad norm = 209.765277 | Training loss = 2.007833
+INFO:root:Epoch = 9 | Num batches processed = 200 | Train epoch ETA = 1707.083412 | Grad norm = 167.564032 | Training loss = 1.679448
+INFO:root:Epoch = 9 | Num batches processed = 300 | Train epoch ETA = 1571.057318 | Grad norm = 327.017826 | Training loss = 2.274086
+INFO:root:Epoch = 9 | Num batches processed = 400 | Train epoch ETA = 1523.100238 | Grad norm = 215.986192 | Training loss = 2.400838
+INFO:root:Epoch = 9 | Num batches processed = 500 | Train epoch ETA = 1356.471763 | Grad norm = 185.208901 | Training loss = 2.574694
+INFO:root:Epoch = 9 | Num batches processed = 600 | Train epoch ETA = 1252.398878 | Grad norm = 227.519145 | Training loss = 2.058071
+INFO:root:Epoch = 9 | Num batches processed = 700 | Train epoch ETA = 1208.622667 | Grad norm = 229.108277 | Training loss = 2.621809
+INFO:root:Epoch = 9 | Num batches processed = 800 | Train epoch ETA = 1105.794290 | Grad norm = 201.882383 | Training loss = 2.455678
+INFO:root:Epoch = 9 | Num batches processed = 900 | Train epoch ETA = 1044.544109 | Grad norm = 275.357753 | Training loss = 3.041332
+INFO:root:Epoch = 9 | Num batches processed = 1000 | Train epoch ETA = 903.282370 | Grad norm = 214.306985 | Training loss = 2.241198
+INFO:root:Epoch = 9 | Num batches processed = 1100 | Train epoch ETA = 903.431707 | Grad norm = 251.599291 | Training loss = 2.223287
+INFO:root:Epoch = 9 | Num batches processed = 1200 | Train epoch ETA = 743.171762 | Grad norm = 223.674056 | Training loss = 3.090282
+INFO:root:Epoch = 9 | Num batches processed = 1300 | Train epoch ETA = 792.350192 | Grad norm = 202.621424 | Training loss = 2.689624
+INFO:root:Epoch = 9 | Num batches processed = 1400 | Train epoch ETA = 580.545558 | Grad norm = 304.810413 | Training loss = 2.827492
+INFO:root:Epoch = 9 | Num batches processed = 1500 | Train epoch ETA = 497.145900 | Grad norm = 220.800103 | Training loss = 3.031256
+INFO:root:Epoch = 9 | Num batches processed = 1600 | Train epoch ETA = 380.866651 | Grad norm = 232.644131 | Training loss = 3.048004
+INFO:root:Epoch = 9 | Num batches processed = 1700 | Train epoch ETA = 260.792429 | Grad norm = 213.742449 | Training loss = 2.283529
+INFO:root:Epoch = 9 | Num batches processed = 1800 | Train epoch ETA = 191.532887 | Grad norm = 200.766606 | Training loss = 2.848542
+INFO:root:Epoch = 9 | Num batches processed = 1900 | Train epoch ETA = 91.506423 | Grad norm = 208.850749 | Training loss = 2.955392
+INFO:root:Epoch = 9 | Num batches processed = 2000 | Train epoch ETA = 0.900217 | Grad norm = 231.705339 | Training loss = 2.661944
+INFO:root:Model saved in file: train/results/20170318_143345/model.weights/
+INFO:root:Evaluating epoch 9
+INFO:root:Validate cost: 5.85351560115
+INFO:root:Train - F1: 0.278181402248, EM: 0.15, for 100 samples
+INFO:root:Validation - F1: 0.160661418897, EM: 0.09, for 100 samples
+{'__flags': {'embedding_size': 100, 'data_dir': 'data/squad', 'output_size': 300, 'vocab_path': 'data/squad/vocab.dat', 'learning_rate': 0.001, 'train_dir': 'train', 'max_gradient_norm': 10.0, 'batch_size': 40, 'keep': 0, 'epochs': 10, 'log_dir': 'log', 'print_every': 1, 'question_size': 70, 'load_train_dir': '', 'state_size': 100, 'optimizer': 'adam', 'dropout': 0.15, 'embed_path': 'data/squad/glove.trimmed.100.npz'}, '__parsed': True}
