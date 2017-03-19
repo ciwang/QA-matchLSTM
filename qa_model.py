@@ -152,8 +152,8 @@ class Decoder(object):
             F_k_e = tf.reshape(tf.tanh(H_rV + tf.expand_dims(W_eh_e, axis=1)), [-1, self.size])
             F_kv_e = tf.reshape(tf.matmul(F_k_e, v), [-1, self.size_p])
             b_e = F_kv_e + c # not softmaxed so we can use softmax_cross_entropy in calculating loss
-        # b_s not softmaxed, a_s softmaxed
-            mask_vectors = tf.sequence_mask(masks, self.output_size, dtype=tf.float64)
+            # b_s not softmaxed, a_s softmaxed
+            mask_vectors = tf.sequence_mask(masks, maxlen=self.output_size, dtype=tf.float64)
             log_mask_vectors = tf.log(mask_vectors)
             b_s = b_s + log_mask_vectors
             b_e = b_e + log_mask_vectors
@@ -334,10 +334,10 @@ class QASystem(object):
 
         for q, p, a in valid_dataset:
             # questions in valid_dataset may need to be clipped
+            q_lengths = [min(len(x), self.FLAGS.question_size) for x in q]
+            p_lengths = [min(len(x), self.FLAGS.output_size) for x in p]
             q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - min(len(question), self.FLAGS.question_size)) for question in q]
             p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - min(len(paragraph), self.FLAGS.output_size)) for paragraph in p]
-            q_lengths = [len(x) for x in q]
-            p_lengths = [len(x) for x in p]
             out = self.test(sess, q, p, a, q_lengths, p_lengths)
             valid_cost += sum(out[0])
             num_seen += len(out[0])
@@ -349,7 +349,7 @@ class QASystem(object):
 
         return valid_cost
 
-    def evaluate_answer(self, session, dataset, dataset_name, rev_vocab, sample=10, log=False):
+    def evaluate_answer(self, session, dataset, dataset_name, rev_vocab, sample=100, log=False):
         """
         Evaluate the model's performance using the harmonic mean of F1 and Exact Match (EM)
         with the set of true answer labels
@@ -374,8 +374,8 @@ class QASystem(object):
             q, p, a = dataset[index]
             if count >= sample: break
 
-            q_lengths = [len(x) for x in q]
-            p_lengths = [len(x) for x in p]
+            q_lengths = [min(len(x), self.FLAGS.question_size) for x in q]
+            p_lengths = [min(len(x), self.FLAGS.output_size) for x in p]
             q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - min(len(question), self.FLAGS.question_size)) for question in q]
             p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - min(len(paragraph), self.FLAGS.output_size)) for paragraph in p]
             a_s, a_e = self.answer(session, q, p, q_lengths, p_lengths)
@@ -431,13 +431,13 @@ class QASystem(object):
         toc = time.time()
         logging.info("Number of params: %d (retrieval took %f secs)" % (num_params, toc - tic))
 
-        dataset = list(dataset)[:15] # is this sketch or nah?
-        val_dataset = list(val_dataset)[:5]
+        dataset = list(dataset)
+        val_dataset = list(val_dataset)
 
         logging.info("Evaluating initial")
-        # val_loss = self.validate(session, val_dataset, log=True)
-        # self.evaluate_answer(session, dataset, "Train", rev_vocab, log=True)
-        # self.evaluate_answer(session, val_dataset, "Validation", rev_vocab, log=True)
+        val_loss = self.validate(session, val_dataset, log=True)
+        self.evaluate_answer(session, dataset, "Train", rev_vocab, log=True)
+        self.evaluate_answer(session, val_dataset, "Validation", rev_vocab, log=True)
 
         # split into train and test loops?
         num_processed = 0
@@ -445,14 +445,14 @@ class QASystem(object):
             random.shuffle(dataset)
             for q, p, a in dataset:
                 tic = time.time()
+                q_lengths = [min(len(x), self.FLAGS.question_size) for x in q]
+                p_lengths = [min(len(x), self.FLAGS.output_size) for x in p]
                 q = [question[:self.FLAGS.question_size] + [PAD_ID] * (self.FLAGS.question_size - min(len(question), self.FLAGS.question_size)) for question in q]
                 p = [paragraph[:self.FLAGS.output_size] + [PAD_ID] * (self.FLAGS.output_size - min(len(paragraph), self.FLAGS.output_size)) for paragraph in p]
-                q_lengths = [len(x) for x in q]
-                p_lengths = [len(x) for x in p]
                 _, loss, grad_norm = self.optimize(session, q, p, a, q_lengths, p_lengths)
                 num_processed += 1
                 toc = time.time()
-                if (num_processed % 1 == 0):
+                if (num_processed % self.FLAGS.print_every == 0):
                     logging.info("Epoch = %d | Num batches processed = %d | Train epoch ETA = %f | Grad norm = %f | Training loss = %f" % (e, num_processed, (len(dataset) - num_processed) * (toc - tic), grad_norm, np.mean(loss)))
                 
             # save the model
