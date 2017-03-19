@@ -349,7 +349,7 @@ class QASystem(object):
 
         return valid_cost
 
-    def evaluate_answer(self, session, dataset, dataset_name, rev_vocab, sample=100, log=False):
+    def evaluate_answer(self, session, dataset, dataset_name, rev_vocab, sample=10, log=False):
         """
         Evaluate the model's performance using the harmonic mean of F1 and Exact Match (EM)
         with the set of true answer labels
@@ -431,8 +431,8 @@ class QASystem(object):
         toc = time.time()
         logging.info("Number of params: %d (retrieval took %f secs)" % (num_params, toc - tic))
 
-        dataset = list(dataset) # is this sketch or nah?
-        val_dataset = list(val_dataset)
+        dataset = list(dataset)[:15] # is this sketch or nah?
+        val_dataset = list(val_dataset)[:5]
 
         logging.info("Evaluating initial")
         # val_loss = self.validate(session, val_dataset, log=True)
