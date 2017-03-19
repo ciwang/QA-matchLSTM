@@ -105,7 +105,7 @@ class Decoder(object):
         self.size = size
         self.output_size = output_size
 
-    def decode(self, inputs):
+    def decode(self, inputs, masks):
         """
         takes in a knowledge representation
         and output a probability estimation over
@@ -153,6 +153,10 @@ class Decoder(object):
             F_kv_e = tf.reshape(tf.matmul(F_k_e, v), [-1, self.size_p])
             b_e = F_kv_e + c # not softmaxed so we can use softmax_cross_entropy in calculating loss
         # b_s not softmaxed, a_s softmaxed
+            mask_vectors = tf.sequence_mask(masks, self.output_size, dtype=tf.float64)
+            log_mask_vectors = tf.log(mask_vectors)
+            b_s = b_s + log_mask_vectors
+            b_e = b_e + log_mask_vectors
         return (b_s, b_e, tf.nn.softmax(b_s), tf.nn.softmax(b_e))
 
 
@@ -173,8 +177,8 @@ class QASystem(object):
         self.questions_placeholder = tf.placeholder(tf.int32, shape=[None, self.FLAGS.question_size])
         self.q_masks_placeholder = tf.placeholder(tf.int32, shape=[None])
         self.p_masks_placeholder = tf.placeholder(tf.int32, shape=[None])
-        self.start_answer = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size])
-        self.end_answer = tf.placeholder(tf.int32, shape=[None, self.FLAGS.output_size])
+        self.start_answer = tf.placeholder(tf.int32, shape=[None])
+        self.end_answer = tf.placeholder(tf.int32, shape=[None])
 
         # ==== assemble pieces ====
         with tf.variable_scope("qa", initializer=tf.uniform_unit_scaling_initializer(1.0)):
@@ -198,8 +202,7 @@ class QASystem(object):
         H_p = encoder.encode_preprocess(self.paragraphs_var, self.p_masks_placeholder, scope="paragraph")
         H_r = encoder.encode_match(H_q, H_p, self.p_masks_placeholder)
         decoder = Decoder(self.FLAGS.state_size, self.FLAGS.output_size)
-        self.b_s, self.b_e, self.a_s, self.a_e = decoder.decode(H_r)
-
+        self.b_s, self.b_e, self.a_s, self.a_e = decoder.decode(H_r, self.p_masks_placeholder)
 
     def setup_loss(self):
         """
@@ -207,14 +210,15 @@ class QASystem(object):
         :return:
         """
         with vs.variable_scope("loss"):
-            loss_s = tf.nn.softmax_cross_entropy_with_logits(labels=self.start_answer, logits=self.b_s)
-            loss_e = tf.nn.softmax_cross_entropy_with_logits(labels=self.end_answer, logits=self.b_e)
+            loss_s = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.start_answer, logits=self.b_s)
+            loss_e = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.end_answer, logits=self.b_e)
             self.loss = loss_s + loss_e
 
     def setup_training_op(self):
         optimizer = get_optimizer(self.FLAGS.optimizer)(self.FLAGS.learning_rate)
         gradients, variables = map(list, zip(*optimizer.compute_gradients(self.loss)))
         self.grad_norm = tf.global_norm(gradients)
+        gradients, _ = tf.clip_by_global_norm(gradients, self.FLAGS.max_gradient_norm)
         grads_and_vars = zip(gradients, variables)
         self.train_op = optimizer.apply_gradients(grads_and_vars)
 
@@ -244,16 +248,12 @@ class QASystem(object):
         input_feed[self.paragraphs_placeholder] = train_p
         input_feed[self.q_masks_placeholder] = q_masks
         input_feed[self.p_masks_placeholder] = p_masks
-        # create 1-hot vectors here?
+
         a_starts = np.array([a[0] for a in train_a])
         a_ends = np.array([a[1] for a in train_a])
-        one_hot_start = np.zeros((a_starts.size, self.FLAGS.output_size))
-        one_hot_end = np.zeros((a_ends.size, self.FLAGS.output_size))
-        one_hot_start[np.arange(a_starts.size), a_starts] = 1
-        one_hot_end[np.arange(a_ends.size), a_ends] = 1
 
-        input_feed[self.start_answer] = one_hot_start
-        input_feed[self.end_answer] = one_hot_end
+        input_feed[self.start_answer] = a_starts
+        input_feed[self.end_answer] = a_ends
 
         output_feed = [self.train_op, self.loss, self.grad_norm]
 
@@ -274,15 +274,12 @@ class QASystem(object):
         input_feed[self.questions_placeholder] = valid_q
         input_feed[self.p_masks_placeholder] = p_masks
         input_feed[self.q_masks_placeholder] = q_masks
+
         a_starts = np.array([a[0] for a in valid_a])
         a_ends = np.array([a[1] for a in valid_a])
-        one_hot_start = np.zeros((a_starts.size, self.FLAGS.output_size))
-        one_hot_end = np.zeros((a_ends.size, self.FLAGS.output_size))
-        one_hot_start[np.arange(a_starts.size), a_starts] = 1
-        one_hot_end[np.arange(a_ends.size), a_ends] = 1
 
-        input_feed[self.start_answer] = one_hot_start
-        input_feed[self.end_answer] = one_hot_end
+        input_feed[self.start_answer] = a_starts
+        input_feed[self.end_answer] = a_ends
 
         output_feed = [self.loss]
 
@@ -371,7 +368,7 @@ class QASystem(object):
         em = 0.0
 
         count = 0
-        random_indices = random.sample(xrange(len(dataset)), 100)
+        random_indices = random.sample(xrange(len(dataset)), sample)
         # a is list of tuples
         for index in random_indices:
             q, p, a = dataset[index]
@@ -390,6 +387,7 @@ class QASystem(object):
                 f1 += f1_score(answer, true_answer)
                 em += exact_match_score(answer, true_answer)
                 count += 1
+                if count >= sample: break
 
         f1 /= sample
         em /= sample
@@ -437,9 +435,9 @@ class QASystem(object):
         val_dataset = list(val_dataset)
 
         logging.info("Evaluating initial")
-        val_loss = self.validate(session, val_dataset, log=True)
-        self.evaluate_answer(session, dataset, "Train", rev_vocab, log=True)
-        self.evaluate_answer(session, val_dataset, "Validation", rev_vocab, log=True)
+        # val_loss = self.validate(session, val_dataset, log=True)
+        # self.evaluate_answer(session, dataset, "Train", rev_vocab, log=True)
+        # self.evaluate_answer(session, val_dataset, "Validation", rev_vocab, log=True)
 
         # split into train and test loops?
         num_processed = 0
@@ -454,7 +452,7 @@ class QASystem(object):
                 _, loss, grad_norm = self.optimize(session, q, p, a, q_lengths, p_lengths)
                 num_processed += 1
                 toc = time.time()
-                if (num_processed % 100 == 0):
+                if (num_processed % 1 == 0):
                     logging.info("Epoch = %d | Num batches processed = %d | Train epoch ETA = %f | Grad norm = %f | Training loss = %f" % (e, num_processed, (len(dataset) - num_processed) * (toc - tic), grad_norm, np.mean(loss)))
                 
             # save the model
