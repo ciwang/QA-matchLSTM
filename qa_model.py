@@ -15,6 +15,7 @@ from tensorflow.python.ops import variable_scope as vs
 
 from evaluate import exact_match_score, f1_score
 from qa_data import PAD_ID
+from adamax import AdamaxOptimizer
 
 logging.basicConfig(level=logging.INFO)
 
@@ -23,6 +24,8 @@ def get_optimizer(opt):
         optfn = tf.train.AdamOptimizer
     elif opt == "sgd":
         optfn = tf.train.GradientDescentOptimizer
+    elif opt == "adamax":
+        optfn = AdamaxOptimizer
     else:
         assert (False)
     return optfn
@@ -33,7 +36,7 @@ class Encoder(object):
         self.vocab_dim = vocab_dim # wat is this
         # pseudocode
 
-    def encode_preprocess(self, inputs, masks, scope="", reuse=False): #wat is masks
+    def encode_preprocess(self, inputs, masks, keep_prob, scope="", reuse=False): #wat is masks
         """
         In a generalized encode function, you pass in your inputs,
         masks, and an initial
@@ -50,15 +53,15 @@ class Encoder(object):
         """
         # symbolic function takes in Tensorflow object, returns tensorflow object
         # pseudocode
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True)
+        self.cell = tf.contrib.rnn.DropoutWrapper(tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True), output_keep_prob=keep_prob)
         with vs.variable_scope(scope):
             #(out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, dtype=tf.float64)
-            out, _ = tf.nn.dynamic_rnn(self.cell, inputs, sequence_length=masks, dtype=tf.float64)
+            (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.cell, self.cell, inputs, sequence_length=masks, dtype=tf.float64)
 
-        return out
+        return tf.concat((out_fw, out_bw), 2)
 
-    def encode_match(self, input_q, input_p, masks_p, scope="", reuse=False):
-        self.match_cell = MatchLSTMCell(self.size, input_q, state_is_tuple=True)
+    def encode_match(self, input_q, input_p, masks_p, keep_prob, scope="", reuse=False):
+        self.match_cell = tf.contrib.rnn.DropoutWrapper(MatchLSTMCell(self.size, input_q, state_is_tuple=True), output_keep_prob=keep_prob)
         with vs.variable_scope(scope):
             (out_fw, out_bw), _ = tf.nn.bidirectional_dynamic_rnn(self.match_cell, self.match_cell, input_p, \
                 sequence_length=masks_p, dtype=tf.float64)
@@ -75,9 +78,9 @@ class MatchLSTMCell(tf.contrib.rnn.BasicLSTMCell):
         # inputs - h_p_t
         # state - h_r_{t-1}
         with tf.variable_scope("matchlstm"):
-            W_q = tf.get_variable("W_q", shape=(self._num_units, self._num_units),
+            W_q = tf.get_variable("W_q", shape=(2 * self._num_units, self._num_units),
                         initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            W_p = tf.get_variable("W_p", shape=(self._num_units, self._num_units),
+            W_p = tf.get_variable("W_p", shape=(2 * self._num_units, self._num_units),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
             W_r = tf.get_variable("W_r", shape=(self._num_units, self._num_units),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
@@ -87,14 +90,14 @@ class MatchLSTMCell(tf.contrib.rnn.BasicLSTMCell):
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
             b = tf.get_variable("b", shape=(),
                     initializer=tf.contrib.layers.xavier_initializer(), dtype=tf.float64)
-            H_q = tf.reshape(self.H_q, [-1, self._num_units])
+            H_q = tf.reshape(self.H_q, [-1, 2 * self._num_units])
             H_qW_q = tf.reshape(tf.matmul(H_q, W_q), [-1, self.size_q, self._num_units])
             tempsum = tf.matmul(inputs, W_p) + tf.matmul(state[1], W_r) + b_p
             G = tf.tanh(H_qW_q + tf.expand_dims(tempsum, axis=1)) # doing broadcasting, but can tf.expand_dims(tempsum, axis=1)), tf.tile([1, size_q, 1])
             Gw = tf.reshape(tf.matmul(tf.reshape(G, [-1, self._num_units]), w), [-1, self.size_q])
             alpha = tf.nn.softmax(Gw + b)
             alpha = tf.expand_dims(alpha, axis=1)
-            H_qalpha = tf.reshape(tf.matmul(alpha, self.H_q), [-1, self._num_units])
+            H_qalpha = tf.reshape(tf.matmul(alpha, self.H_q), [-1, 2 * self._num_units])
             z = tf.concat((inputs, H_qalpha), axis=1)
         output, new_state = super(MatchLSTMCell, self).__call__(z, state, scope)
         return output, new_state
@@ -105,7 +108,7 @@ class Decoder(object):
         self.size = size
         self.output_size = output_size
 
-    def decode(self, inputs, masks):
+    def decode(self, inputs, masks, keep_prob):
         """
         takes in a knowledge representation
         and output a probability estimation over
@@ -120,7 +123,7 @@ class Decoder(object):
         # given: h_r 
         # TODO: CUT DOWN TO BATCH_SIZE
         # each 2-d TF variable
-        self.cell = tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True)
+        self.cell = tf.contrib.rnn.DropoutWrapper(tf.contrib.rnn.BasicLSTMCell(self.size, state_is_tuple=True), output_keep_prob=keep_prob)
         self.size_p = inputs.get_shape().as_list()[1]
 
         with vs.variable_scope("boundary"):
@@ -179,6 +182,7 @@ class QASystem(object):
         self.p_masks_placeholder = tf.placeholder(tf.int32, shape=[None])
         self.start_answer = tf.placeholder(tf.int32, shape=[None])
         self.end_answer = tf.placeholder(tf.int32, shape=[None])
+        self.keep_placeholder = tf.placeholder(tf.float64, shape=None)
 
         # ==== assemble pieces ====
         with tf.variable_scope("qa", initializer=tf.uniform_unit_scaling_initializer(1.0)):
@@ -198,11 +202,11 @@ class QASystem(object):
         :return:
         """
         encoder = Encoder(self.FLAGS.state_size, self.FLAGS.embedding_size)
-        H_q = encoder.encode_preprocess(self.questions_var, self.q_masks_placeholder, scope="question")
-        H_p = encoder.encode_preprocess(self.paragraphs_var, self.p_masks_placeholder, scope="paragraph")
-        H_r = encoder.encode_match(H_q, H_p, self.p_masks_placeholder)
+        H_q = encoder.encode_preprocess(self.questions_var, self.q_masks_placeholder, self.keep_placeholder, scope="question")
+        H_p = encoder.encode_preprocess(self.paragraphs_var, self.p_masks_placeholder, self.keep_placeholder, scope="paragraph")
+        H_r = encoder.encode_match(H_q, H_p, self.p_masks_placeholder, self.keep_placeholder)
         decoder = Decoder(self.FLAGS.state_size, self.FLAGS.output_size)
-        self.b_s, self.b_e, self.a_s, self.a_e = decoder.decode(H_r, self.p_masks_placeholder)
+        self.b_s, self.b_e, self.a_s, self.a_e = decoder.decode(H_r, self.p_masks_placeholder, self.keep_placeholder)
 
     def setup_loss(self):
         """
@@ -248,6 +252,7 @@ class QASystem(object):
         input_feed[self.paragraphs_placeholder] = train_p
         input_feed[self.q_masks_placeholder] = q_masks
         input_feed[self.p_masks_placeholder] = p_masks
+        input_feed[self.keep_placeholder] = 1.0 - self.FLAGS.dropout
 
         a_starts = np.array([a[0] for a in train_a])
         a_ends = np.array([a[1] for a in train_a])
@@ -274,6 +279,7 @@ class QASystem(object):
         input_feed[self.questions_placeholder] = valid_q
         input_feed[self.p_masks_placeholder] = p_masks
         input_feed[self.q_masks_placeholder] = q_masks
+        input_feed[self.keep_placeholder] = 1.0
 
         a_starts = np.array([a[0] for a in valid_a])
         a_ends = np.array([a[1] for a in valid_a])
@@ -301,6 +307,7 @@ class QASystem(object):
         input_feed[self.questions_placeholder] = test_q
         input_feed[self.p_masks_placeholder] = p_masks
         input_feed[self.q_masks_placeholder] = q_masks
+        input_feed[self.keep_placeholder] = 1.0
 
         output_feed = [self.a_s, self.a_e]
 
