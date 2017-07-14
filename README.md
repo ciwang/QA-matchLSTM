@@ -1,6 +1,6 @@
-#Stanford CS224N Final Project
-##Reading Comprehension with Deep Learning
-----
+# Stanford CS224N Final Project
+
+## Reading Comprehension with Deep Learning
 
 A neural network architecture for reading comprehension using the [Stanford Question Answering Dataset (SQuAD)](https://arxiv.org/abs/1606.05250). Given 100K question-answer pairs, the task is defined as predicting an answer span within a given context paragraph.
 
